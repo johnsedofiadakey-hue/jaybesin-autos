@@ -1409,75 +1409,95 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
   ];
 
   const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState("");
 
-  // ── Upload any base64 images to Storage, return Firebase URLs ──
+  const showErr = (msg) => { setSaveErr(msg); setTimeout(() => setSaveErr(""), 6000); };
+
+  // ── Try Storage upload; if it fails, return original value (no crash) ──
   const uploadIfBase64 = async (val, path) => {
     if (val && typeof val === 'string' && val.startsWith('data:')) {
-      return await uploadImage(val, path);
+      try { return await uploadImage(val, path); }
+      catch (e) { console.warn('Storage upload skipped (check Storage rules):', e.message); return val; }
     }
     return val;
   };
 
   const saveV = async () => {
-    setSaving(true);
+    if (!newV.brand.trim() || !newV.model.trim()) { showErr("Brand and Model are required."); return; }
+    setSaving(true); setSaveErr("");
     try {
       const ts = Date.now();
       const images = await Promise.all(
         (newV.images || []).map((img, i) => uploadIfBase64(img, `vehicles/${ts}_img_${i}`))
       );
       const logo = await uploadIfBase64(newV.logo, `vehicles/${ts}_logo`);
-      const v = { ...newV, id: editVId || String(ts), price: +newV.price, duties: +newV.duties, totalGhana: +newV.totalGhana, images, logo };
+      const v = { ...newV, id: editVId || String(ts), price: +newV.price || 0, duties: +newV.duties || 0, totalGhana: +newV.totalGhana || 0, images, logo };
       await saveVehicle(v);
       setShowAddV(false); setEditVId(null); setNewV(blankV);
-    } catch (e) { console.error('saveV:', e); }
+    } catch (e) {
+      console.error('saveV:', e);
+      showErr(`Save failed: ${e.message || "Check Firestore Security Rules"}`);
+    }
     setSaving(false);
   };
 
   const deleteV = async (id) => {
     setSaving(true);
-    try { await deleteVehicle(String(id)); } catch (e) { console.error('deleteV:', e); }
+    try { await deleteVehicle(String(id)); }
+    catch (e) { showErr(`Delete failed: ${e.message}`); }
     setSaving(false);
   };
 
   const addCharger = async () => {
+    if (!newC.name.trim()) { showErr("Charger name is required."); return; }
     setSaving(true);
-    try { await saveCharger({ ...newC, price: +newC.price, installation: +newC.installation }); setShowAddC(false); setNewC({ name: '', brand: '', type: 'AC', power: '', price: '', installation: '', emoji: '⚡' }); } catch (e) { console.error(e); }
+    try {
+      await saveCharger({ ...newC, price: +newC.price || 0, installation: +newC.installation || 0 });
+      setShowAddC(false); setNewC({ name: '', brand: '', type: 'AC', power: '', price: '', installation: '', emoji: '⚡' });
+    } catch (e) { showErr(`Save failed: ${e.message}`); }
     setSaving(false);
   };
 
   const removeCharger = async (id) => {
     setSaving(true);
-    try { await deleteCharger(String(id)); } catch (e) { console.error(e); }
+    try { await deleteCharger(String(id)); }
+    catch (e) { showErr(`Delete failed: ${e.message}`); }
     setSaving(false);
   };
 
   const addPart = async () => {
+    if (!newP.name.trim()) { showErr("Part name is required."); return; }
     setSaving(true);
-    try { await savePart({ ...newP, price: +newP.price }); setShowAddP(false); setNewP({ name: '', compatible: '', category: '', price: '', emoji: '🔧' }); } catch (e) { console.error(e); }
+    try {
+      await savePart({ ...newP, price: +newP.price || 0 });
+      setShowAddP(false); setNewP({ name: '', compatible: '', category: '', price: '', emoji: '🔧' });
+    } catch (e) { showErr(`Save failed: ${e.message}`); }
     setSaving(false);
   };
 
   const removePart = async (id) => {
     setSaving(true);
-    try { await deletePart(String(id)); } catch (e) { console.error(e); }
+    try { await deletePart(String(id)); }
+    catch (e) { showErr(`Delete failed: ${e.message}`); }
     setSaving(false);
   };
 
   const updateOrderStatus = async (id, status) => {
-    try { await saveOrder({ id: String(id), status }); } catch (e) { console.error(e); }
+    try { await saveOrder({ id: String(id), status }); }
+    catch (e) { showErr(`Update failed: ${e.message}`); }
   };
 
   const handleMarkReplied = async (id) => {
-    try { await updateInquiryStatus(String(id), 'replied'); } catch (e) { console.error(e); }
+    try { await updateInquiryStatus(String(id), 'replied'); }
+    catch (e) { showErr(`Update failed: ${e.message}`); }
   };
 
-  const openEdit = (v) => { setNewV({ ...v, price: String(v.price), duties: String(v.duties), totalGhana: String(v.totalGhana) }); setEditVId(v.id); setShowAddV(true) };
+  const openEdit = (v) => { setNewV({ ...v, price: String(v.price || ''), duties: String(v.duties || ''), totalGhana: String(v.totalGhana || '') }); setEditVId(v.id); setShowAddV(true) };
 
   const handleSaveSettings = async () => {
-    setSaving(true);
+    setSaving(true); setSaveErr("");
     try {
       const ts = Date.now();
-      // Upload hero slide images & logo to Storage
       const heroSlides = await Promise.all(
         (editS.heroSlides || []).map(async (s, i) => ({ ...s, image: await uploadIfBase64(s.image, `hero/slide_${i}_${ts}`) }))
       );
@@ -1485,7 +1505,10 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
       const finalSettings = { ...editS, heroSlides, logo };
       await setSettings(finalSettings);
       setSaveOk(true); setTimeout(() => setSaveOk(false), 3000);
-    } catch (e) { console.error('saveSettings:', e); }
+    } catch (e) {
+      console.error('saveSettings:', e);
+      showErr(`Settings save failed: ${e.message || "Check Firestore Security Rules"}`);
+    }
     setSaving(false);
   };
 
@@ -1504,6 +1527,12 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
   return (
     <div className="adm-wrap">
       {saving && <div className="adm-saving-bar" />}
+      {saveErr && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9998, background: "#FF4A5A", color: "#fff", padding: "12px 20px", fontSize: "13px", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <span>⚠️ {saveErr}</span>
+          <button onClick={() => setSaveErr("")} style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", lineHeight: 1 }}>×</button>
+        </div>
+      )}
       <aside className="adm-side">
         <div className="adm-side-hd">
           <div className="adm-side-logo">Jaybesin <span>Autos</span></div>
