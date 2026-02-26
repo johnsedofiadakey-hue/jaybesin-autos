@@ -410,28 +410,27 @@ const GlobalStyles = () => (
     .slide-thumb{width:64px;height:44px;border-radius:5px;object-fit:cover;border:1px solid var(--border2)}
     .slide-thumb-ph{width:64px;height:44px;border-radius:5px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border2)}
 
-    /* Mobile admin */
+    /* ── Hamburger nav drawer ── */
+    .nav-burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;transition:background .2s;flex-shrink:0}
+    .nav-burger:hover{background:color-mix(in srgb,var(--neon) 10%,transparent)}
+    .nav-burger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:transform .3s,opacity .3s}
+    .nav-burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .nav-burger.open span:nth-child(2){opacity:0}
+    .nav-burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+    .nav-drawer{display:none}
+
+    /* ── Mobile admin ── */
     .adm-mobile-nav{display:none}
     .adm-saving-bar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--grad-neon);z-index:9999;animation:saveProg .8s ease-in-out infinite alternate}
     @keyframes saveProg{from{opacity:.5;transform:scaleX(.7)}to{opacity:1;transform:scaleX(1)}}
     .adm-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
-    @media(max-width:768px){
-      .adm-mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding:6px 0 20px;gap:2px}
-      .adm-mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text2);font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:4px 2px;transition:color .2s;min-width:0}
-      .adm-mob-btn.act{color:var(--neon)}
-      .adm-mob-btn-ico{font-size:22px;line-height:1}
-      .adm-main{padding:14px 14px 90px!important;margin-left:0!important}
-      .adm-hd{flex-wrap:wrap;gap:10px}
-      .adm-pg-title{font-size:18px}
-      .dash-grid{grid-template-columns:1fr 1fr!important}
-      .dc-val{font-size:22px}
-      .adm-card{padding:14px}
-      .frow{grid-template-columns:1fr!important}
-      .mo-box{max-width:100%!important;margin:0!important;border-radius:16px 16px 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-height:90vh!important}
-      .mo{align-items:flex-end!important;padding:0!important}
-    }
 
-    /* Responsive */
+    /* ── Safe-area / touch globals ── */
+    .ann-bar{padding-top:max(9px,env(safe-area-inset-top))}
+    .wa-float{cursor:pointer}
+    button,a,[role=button]{-webkit-tap-highlight-color:transparent}
+
+    /* ── 1100px tablet ── */
     @media(max-width:1100px){
       .nav,.nav.sc{padding:14px 28px}
       .sec{padding:68px 28px}
@@ -448,13 +447,92 @@ const GlobalStyles = () => (
       .hero-content{padding:0 28px}
       .hero-slide-counter{display:none}
     }
+
+    /* ── 768px mobile ── */
     @media(max-width:768px){
-      .nav-links{display:none}
+      /* nav */
+      .nav,.nav.sc{padding:12px 18px}
+      .nav-links,.nav>.btn-p{display:none}
+      .nav-burger{display:flex}
+      /* drawer */
+      .nav-drawer{display:flex;flex-direction:column;position:fixed;inset:0;background:var(--bg);z-index:990;padding:80px 28px 40px;gap:6px;transform:translateX(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);overflow-y:auto}
+      .nav-drawer.open{transform:none}
+      .nav-drawer-link{display:flex;align-items:center;padding:16px 0;font-size:18px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border2);text-decoration:none;cursor:pointer;background:none;border-left:none;border-right:none;border-top:none;text-align:left;width:100%;font-family:'Outfit',sans-serif;transition:color .2s;-webkit-tap-highlight-color:transparent}
+      .nav-drawer-link:hover{color:var(--neon)}
+      .nav-drawer-cta{margin-top:24px;width:100%;justify-content:center;padding:16px;font-size:14px}
+      /* hero */
+      .hero{min-height:100svh;min-height:100vh}
+      .hero-content{padding:0 20px;max-width:100%}
+      .hero-h1{font-size:clamp(36px,9vw,56px);letter-spacing:-1px}
+      .hero-h1-sub{font-size:clamp(16px,4.5vw,26px);margin-bottom:18px}
+      .hero-desc{font-size:14px;margin-bottom:28px}
+      .hero-btns{flex-direction:column;gap:10px}
+      .hero-btns .btn-p,.hero-btns .btn-o,.hero-btns .btn-or{width:100%;justify-content:center;padding:14px 20px;font-size:13px}
+      .hero-arrows{right:50%;transform:translateX(50%);bottom:54px;gap:16px}
+      .hero-arrow{width:52px;height:52px;font-size:16px}
+      .hero-scroll{display:none}
+      .hero-dots{bottom:24px}
+      /* sections */
+      .sec{padding:52px 18px}
+      .sec-h{font-size:clamp(24px,6vw,36px)}
+      /* stats */
+      .stats-band{grid-template-columns:1fr 1fr;padding:24px 18px;gap:12px}
+      .stat-n{font-size:28px}
+      /* grids */
       .car-grid{grid-template-columns:1fr}
-      .footer-grid{grid-template-columns:1fr}
       .svc-grid{grid-template-columns:1fr}
+      .footer-grid{grid-template-columns:1fr}
+      /* testimonials horizontal scroll */
+      .testi-grid{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+      .testi-grid::-webkit-scrollbar{display:none}
+      .testi-card{flex-shrink:0;width:80vw;max-width:320px;scroll-snap-align:start}
+      /* vehicle card touch */
+      .v-card:active{transform:scale(.98)}
+      .v-card-footer .btn-p,.v-card-footer .btn-o{padding:10px 14px;font-size:11px}
+      /* buttons — larger touch targets */
+      .btn-p,.btn-o,.btn-or{min-height:44px;cursor:pointer}
+      .btn-sm{min-height:36px;cursor:pointer}
+      /* all cursors → pointer on mobile */
+      *{cursor:pointer}
+      .cursor-el{display:none!important}
+      /* footer */
+      .footer-grid{gap:28px}
+      .footer-copy{text-align:center}
+      .footer-socials{justify-content:center}
+      .social-btn{width:44px;height:44px}
+      /* WhatsApp */
+      .wa-float{bottom:calc(90px + env(safe-area-inset-bottom));right:18px;width:52px;height:52px}
+      /* vehicle detail */
+      .vd-wrap{padding:32px 18px;gap:24px}
+      /* inputs — min 16px prevents iOS zoom */
+      input,select,textarea{font-size:16px!important}
+      .inp{min-height:44px;padding:12px 14px}
+      /* admin */
+      .adm-mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding:6px 0;padding-bottom:calc(6px + env(safe-area-inset-bottom));gap:0}
+      .adm-mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text2);font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:5px 2px;transition:color .2s;min-width:0;-webkit-tap-highlight-color:transparent}
+      .adm-mob-btn.act{color:var(--neon)}
+      .adm-mob-btn-ico{font-size:21px;line-height:1}
+      .adm-main{padding:14px 14px 90px!important;margin-left:0!important}
+      .adm-hd{flex-wrap:wrap;gap:10px}
+      .adm-pg-title{font-size:18px}
+      .dash-grid{grid-template-columns:1fr 1fr!important}
+      .dc-val{font-size:22px}
+      .adm-card{padding:14px}
+      .frow{grid-template-columns:1fr!important}
+      /* bottom sheet modals */
+      .mo{align-items:flex-end!important;padding:0!important}
+      .mo-box{max-width:100%!important;width:100%!important;margin:0!important;border-radius:20px 20px 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-height:92vh!important;overflow-y:auto}
+      .mo-box::before{content:'';display:block;width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 4px}
+    }
+
+    /* ── 480px small phones ── */
+    @media(max-width:480px){
+      .hero-h1{font-size:clamp(30px,10vw,44px)}
       .stats-band{grid-template-columns:1fr 1fr}
-      .hero-arrows{right:20px;bottom:60px}
+      .dash-grid{grid-template-columns:1fr!important}
+      .v-card-img{height:180px}
+      .sec{padding:44px 16px}
+      .testi-card{width:88vw}
     }
   `}</style>
 );
@@ -663,21 +741,70 @@ function HeroSlider({ slides = [], onExplore, onQuote }) {
 // ─── NAV ──────────────────────────────────────────────────────────
 function Nav({ setPage, settings, annOn }) {
   const [sc, setSc] = useState(false);
-  useEffect(() => { const h = () => setSc(window.scrollY > 60); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h) }, []);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => {
+    const h = () => setSc(window.scrollY > 60);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
+  }, []);
+  // lock body scroll when drawer open
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
+  const navLinks = [
+    ["Garage", "garage"], ["EV Charging", "charging"],
+    ["Spare Parts", "parts"], ["Track Order", "track"], ["Contact", "contact"],
+  ];
+  const go = (p) => { setPage(p); setDrawerOpen(false); };
   const parts = settings.companyName.split(" ");
   return (
-    <nav className={`nav${sc ? " sc" : ""}`} style={{ top: annOn ? '38px' : '0' }}>
-      <div className="nav-logo" onClick={() => setPage("home")}>
-        {settings.logo ? <img src={settings.logo} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "contain" }} alt="" /> : <div className="nav-logo-mark">{parts[0][0]}</div>}
-        <div className="nav-brand"><span>{parts[0]}</span>{parts.slice(1).join(" ")}</div>
-      </div>
-      <ul className="nav-links">
-        {[["Garage", "garage"], ["EV Charging", "charging"], ["Spare Parts", "parts"], ["Track Order", "track"], ["Contact", "contact"]].map(([l, p]) => (
-          <li key={l}><a href="#" onClick={e => { e.preventDefault(); setPage(p) }}>{l}</a></li>
+    <>
+      <nav className={`nav${sc ? " sc" : ""}`} style={{ top: annOn ? "38px" : "0" }}>
+        <div className="nav-logo" onClick={() => go("home")} style={{ cursor: "pointer" }}>
+          {settings.logo
+            ? <img src={settings.logo} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "contain" }} alt="" />
+            : <div className="nav-logo-mark">{parts[0][0]}</div>}
+          <div className="nav-brand"><span>{parts[0]}</span>{parts.slice(1).join(" ")}</div>
+        </div>
+        <ul className="nav-links">
+          {navLinks.map(([l, p]) => (
+            <li key={l}><a href="#" onClick={e => { e.preventDefault(); go(p) }}>{l}</a></li>
+          ))}
+        </ul>
+        <button className="btn-p" onClick={() => go("contact")} style={{ padding: "9px 22px", fontSize: "11px" }}>Get a Quote</button>
+        {/* Hamburger */}
+        <button className={`nav-burger${drawerOpen ? " open" : ""}`} onClick={() => setDrawerOpen(o => !o)} aria-label="Menu">
+          <span /><span /><span />
+        </button>
+      </nav>
+
+      {/* Mobile drawer */}
+      <div className={`nav-drawer${drawerOpen ? " open" : ""}`}>
+        {/* Close row */}
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: "var(--bg)", borderBottom: "1px solid var(--border2)", zIndex: 991 }}>
+          <div className="nav-logo" onClick={() => go("home")} style={{ cursor: "pointer" }}>
+            {settings.logo
+              ? <img src={settings.logo} style={{ width: 30, height: 30, borderRadius: 6, objectFit: "contain" }} alt="" />
+              : <div className="nav-logo-mark" style={{ width: 30, height: 30, fontSize: 12 }}>{parts[0][0]}</div>}
+            <div className="nav-brand" style={{ fontSize: 15 }}><span>{parts[0]}</span>{parts.slice(1).join(" ")}</div>
+          </div>
+          <button onClick={() => setDrawerOpen(false)} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border2)", background: "var(--bg2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, cursor: "pointer", color: "var(--text)" }}>✕</button>
+        </div>
+        {navLinks.map(([l, p]) => (
+          <button key={l} className="nav-drawer-link" onClick={() => go(p)}>
+            <span style={{ margin: "0 14px 0 0", fontSize: 20 }}>
+              {p === "garage" ? "🚗" : p === "charging" ? "⚡" : p === "parts" ? "🔧" : p === "track" ? "📦" : "📞"}
+            </span>
+            {l}
+          </button>
         ))}
-      </ul>
-      <button className="btn-p" onClick={() => setPage("contact")} style={{ padding: "9px 22px", fontSize: "11px" }}>Get a Quote</button>
-    </nav>
+        <button className="btn-p nav-drawer-cta" onClick={() => go("contact")}>Get a Quote →</button>
+        <div style={{ marginTop: "auto", paddingTop: 24, fontSize: 11, color: "var(--text3)", textAlign: "center" }}>
+          {settings.phone} · {settings.email}
+        </div>
+      </div>
+    </>
   );
 }
 
