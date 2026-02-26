@@ -1654,6 +1654,7 @@ export default function App() {
   const [page, setPage] = useState("home");
   const [loggedIn, setLoggedIn] = useState(false);
   const [fbReady, setFbReady] = useState(false);
+  const [annVisible, setAnnVisible] = useState(true);
 
   // ── Data state (populated from Firestore or fallback to local) ──
   const [vehicles, setVehicles] = useState(VEHICLES0);
@@ -1734,7 +1735,6 @@ export default function App() {
       /></>
   );
 
-  const [annVisible, setAnnVisible] = useState(true);
   const annOn = settings.annBarOn && annVisible;
 
   return (
