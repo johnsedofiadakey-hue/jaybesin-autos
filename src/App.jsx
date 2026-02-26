@@ -538,6 +538,79 @@ const GlobalStyles = () => (
       .sec{padding:44px 16px}
       .testi-card{width:88vw}
     }
+
+    /* ═══════════════════════════════════════════════
+       COMPREHENSIVE MOBILE FIXES — all tabs, all pages
+       ═══════════════════════════════════════════════ */
+    @media(max-width:768px){
+
+      /* ── Filter bar wraps ── */
+      .filter-bar{gap:6px}
+      .ftag{padding:7px 14px;font-size:10px}
+
+      /* ── Admin table → card layout ── */
+      .adm-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+      .adm-table{min-width:560px;width:100%}
+      .adm-table th,.adm-table td{white-space:nowrap;padding:10px 12px;font-size:12px}
+
+      /* ── Admin form heading rows ── */
+      .adm-hd{flex-wrap:wrap;row-gap:10px}
+      .adm-hd>.btn-p{width:100%;justify-content:center}
+
+      /* ── Admin: Make the add/edit vehicle modal fields full width ── */
+      .mo-body .frow{grid-template-columns:1fr}
+      .mo-body{padding:14px 16px!important}
+      .mo-hd{padding:12px 16px!important}
+
+      /* ── Admin orders: tracking stepper scrolls horizontally ── */
+      .order-track-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px}
+      .track-line-h{display:flex;gap:0;min-width:560px}
+
+      /* ── Admin settings: all inline 1fr1fr grids → single col ── */
+      .settings-2col{grid-template-columns:1fr!important;display:grid!important}
+
+      /* ── Vehicle detail page ── */
+      .vd-wrap{grid-template-columns:1fr!important;padding:90px 16px 32px!important;gap:24px!important}
+      .vd-gallery{position:static!important}
+      .vd-main{aspect-ratio:4/3}
+      .vd-thumbs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+      .spec-grid{grid-template-columns:1fr 1fr}
+      .price-box{padding:16px}
+
+      /* ── Public tracking page ── */
+      .track-line{padding-left:28px}
+      .track-dot{left:-28px;width:18px;height:18px;font-size:8px}
+
+      /* ── Charging & parts page grids ── */
+      .charging-grid{grid-template-columns:1fr!important}
+      .parts-grid{grid-template-columns:1fr 1fr!important;gap:10px}
+
+      /* ── Contact page form ── */
+      .contact-form-wrap{padding:20px 16px!important}
+
+      /* ── Footer always single col on mobile, everything visible ── */
+      .footer-grid{grid-template-columns:1fr}
+      .footer-socials{display:flex;flex-wrap:wrap;gap:8px}
+
+      /* ── Public hero btns never hidden ── */
+      .hero-btns{display:flex!important}
+
+      /* ── Svc card full width text not clipped ── */
+      .svc-card{padding:22px 18px}
+      .svc-name{font-size:15px}
+
+      /* ── Ensure nothing clips horizontally on any page ── */
+      .sec>*,.vd-wrap>*{max-width:100%;overflow-wrap:break-word;word-break:break-word}
+
+      /* ── Admin tab icon sizing ── */
+      .adm-link{gap:8px;font-size:12px;padding:9px 12px}
+
+      /* ── Admin sidebar never shown on mobile (use bottom nav) ── */
+      .adm-side{display:none!important}
+
+      /* ── Admin main full width on mobile ── */
+      .adm-wrap{display:block}
+    }
   `}</style>
 );
 
@@ -1577,7 +1650,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
           <div>
             <div className="adm-hd">
               <div className="adm-pg-title">Settings</div>
-              <button className="btn-p" onClick={saveSettings}>Save All Changes</button>
+              <button className="btn-p" onClick={handleSaveSettings}>Save All Changes</button>
             </div>
             {saveOk && <div className="alert al-ok" style={{ marginBottom: "16px" }}>✓ Settings saved successfully!</div>}
 
