@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Car, Zap, Wrench, Package, MessageCircle, LayoutDashboard, FileText, Settings, LogOut, Globe, Phone, MapPin, Mail, DollarSign, Star, ShieldCheck, Lock, TrendingUp, Users } from "lucide-react";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebase";
 import {
@@ -90,7 +91,10 @@ function ThemeInjector({ theme: t }) {
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&display=swap');
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0;overflow-x:hidden;overscroll-behavior-x:none;-webkit-overflow-scrolling:touch}
+    *,.cursor-el{box-sizing:border-box}
+    @media(pointer:coarse){.cursor-el{display:none!important;pointer-events:none!important}}
     html{scroll-behavior:smooth}
     body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;overflow-x:hidden;cursor:none}
     ::-webkit-scrollbar{width:3px}
@@ -860,10 +864,10 @@ function HomePage({ setPage, vehicles, settings }) {
         <div className="rvR">
           <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: "16px", padding: "36px", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: "-50px", right: "-50px", width: "180px", height: "180px", borderRadius: "50%", background: "radial-gradient(circle,color-mix(in srgb,var(--neon) 8%,transparent),transparent 70%)" }} />
-            {[["🚗", "Vehicle Import", "Saloons, SUVs, 4×4s, EVs, Hybrids"], ["⚡", "EV Charging", "Supply & professional installation"], ["🔧", "Spare Parts", "OEM & quality aftermarket parts"], ["📦", "Full Service", "Sourcing → Shipping → Delivery"]].map(([icon, name, desc]) => (
-              <div key={name} style={{ display: "flex", gap: "14px", marginBottom: "20px", alignItems: "flex-start" }}>
-                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "color-mix(in srgb,var(--neon) 12%,transparent)", border: "1px solid color-mix(in srgb,var(--neon) 22%,transparent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>{icon}</div>
-                <div><div style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: "14px", marginBottom: "2px" }}>{name}</div><div style={{ fontSize: "12px", color: "var(--text2)" }}>{desc}</div></div>
+            {[{ Icon: Car, name: "Vehicle Import", desc: "Saloons, SUVs, 4×4s, EVs, Hybrids" }, { Icon: Zap, name: "EV Charging", desc: "Supply & professional installation" }, { Icon: Wrench, name: "Spare Parts", desc: "OEM & quality aftermarket parts" }, { Icon: Package, name: "Full Service", desc: "Sourcing → Shipping → Delivery" }].map((item, i) => (
+              <div key={item.name} style={{ display: "flex", gap: "14px", marginBottom: "20px", alignItems: "flex-start" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "color-mix(in srgb,var(--neon) 12%,transparent)", border: "1px solid color-mix(in srgb,var(--neon) 22%,transparent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}><item.Icon size={20} strokeWidth={2} /></div>
+                <div><div style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: "14px", marginBottom: "2px" }}>{item.name}</div><div style={{ fontSize: "12px", color: "var(--text2)" }}>{item.desc}</div></div>
               </div>
             ))}
           </div>
@@ -886,9 +890,9 @@ function HomePage({ setPage, vehicles, settings }) {
         <div className="sec-chip chip-3 rv">Everything You Need</div>
         <h2 className="sec-h rv" style={{ transitionDelay: ".1s" }}>Complete <span className="gt-purple">Automotive</span><br />Solutions</h2>
         <div className="svc-grid">
-          {[{ icon: "🚗", name: "Vehicle Import", desc: "Premium Chinese vehicles — Electric, Hybrid, Gasoline. Saloons, SUVs, 4×4s and more.", chip: "chip-1", c: "var(--neon)", action: "garage" }, { icon: "⚡", name: "EV Charging Stations", desc: "AC home chargers, DC fast chargers, commercial EV infrastructure. Supply & professional install.", chip: "chip-4", c: "var(--neon2)", action: "charging" }, { icon: "🔧", name: "Spare Parts", desc: "Genuine OEM and quality aftermarket spare parts for all major Chinese brands we supply.", chip: "chip-2", c: "var(--orange)", action: "parts" }].map((s, i) => (
+          {[{ Icon: Car, name: "Vehicle Import", desc: "Premium Chinese vehicles — Electric, Hybrid, Gasoline. Saloons, SUVs, 4×4s and more.", chip: "chip-1", c: "var(--neon)", action: "garage" }, { Icon: Zap, name: "EV Charging Stations", desc: "AC home chargers, DC fast chargers, commercial EV infrastructure. Supply & professional install.", chip: "chip-4", c: "var(--neon2)", action: "charging" }, { Icon: Wrench, name: "Spare Parts", desc: "Genuine OEM and quality aftermarket spare parts for all major Chinese brands we supply.", chip: "chip-2", c: "var(--orange)", action: "parts" }].map((s, i) => (
             <div key={s.name} className="svc-card rv" style={{ transitionDelay: `${i * .1}s` }} onClick={() => setPage(s.action)}>
-              <div className="svc-icon" style={{ background: `color-mix(in srgb,${s.c} 12%,transparent)`, border: `1px solid color-mix(in srgb,${s.c} 22%,transparent)` }}>{s.icon}</div>
+              <div className="svc-icon" style={{ background: `color-mix(in srgb,${s.c} 12%,transparent)`, border: `1px solid color-mix(in srgb,${s.c} 22%,transparent)` }}><s.Icon size={20} strokeWidth={2} /></div>
               <div className="svc-name">{s.name}</div>
               <div className="svc-desc">{s.desc}</div>
               <div style={{ marginTop: "18px" }}><div className={`sec-chip ${s.chip}`}>Explore →</div></div>
@@ -1209,9 +1213,9 @@ function ContactPage({ settings }) {
             <div className="rvR">
               <div style={{ marginBottom: "32px" }}>
                 <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "17px", marginBottom: "18px" }}>Contact Information</div>
-                {[["📍", "Address", settings.address], ["📧", "Email", settings.email], ["📞", "Phone", settings.phone], ["💬", "WhatsApp", settings.whatsapp]].map(([icon, label, value]) => (
-                  <div key={label} style={{ display: "flex", gap: "12px", padding: "12px 0", borderBottom: "1px solid var(--border2)" }}>
-                    <span style={{ fontSize: "16px" }}>{icon}</span>
+                {[[MapPin, "Address", settings.address], [Mail, "Email", settings.email], [Phone, "Phone", settings.phone], [MessageCircle, "WhatsApp", settings.whatsapp]].map(([IconComp, label, value]) => (
+                  <div key={label} style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "12px 0", borderBottom: "1px solid var(--border2)" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 8, background: "color-mix(in srgb,var(--neon) 10%,transparent)", border: "1px solid color-mix(in srgb,var(--neon) 20%,transparent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--neon)" }}><IconComp size={16} strokeWidth={2} /></div>
                     <div><div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "var(--neon)", marginBottom: "3px" }}>{label}</div><div style={{ fontSize: "13px", color: "var(--text2)" }}>{value}</div></div>
                   </div>
                 ))}
@@ -1229,7 +1233,7 @@ function ContactPage({ settings }) {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -1296,7 +1300,7 @@ function AdminLogin({ onLogin }) {
         <div className="fg"><label className="lbl">Email</label><input className="inp" type="email" placeholder="admin@jaybesin.com" value={c.email} onChange={e => setC({ ...c, email: e.target.value })} /></div>
         <div className="fg" style={{ marginBottom: "24px" }}><label className="lbl">Password</label><input className="inp" type="password" placeholder="••••••••" value={c.password} onChange={e => setC({ ...c, password: e.target.value })} onKeyDown={e => e.key === "Enter" && go()} /></div>
         <button className="btn-p" style={{ width: "100%", justifyContent: "center", padding: "14px" }} onClick={go} disabled={loading}>{loading ? "Signing in…" : "Sign In →"}</button>
-        <div style={{ textAlign: "center", marginTop: "18px", fontSize: "10px", color: "var(--text3)" }}>🔐 Powered by Firebase Auth</div>
+        <div style={{ textAlign: "center", marginTop: "18px", fontSize: "10px", color: "var(--text3)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Lock size={11} strokeWidth={2} />Powered by Firebase Auth</div>
       </div>
     </div>
   );
@@ -1321,10 +1325,14 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
   useEffect(() => setEditS(settings), [settings]);
 
   const navItems = [
-    { id: "dashboard", icon: "📊", lbl: "Dashboard" }, { id: "vehicles", icon: "🚗", lbl: "Vehicles" },
-    { id: "charging", icon: "⚡", lbl: "Charging Stations" }, { id: "parts", icon: "🔧", lbl: "Spare Parts" },
-    { id: "orders", icon: "📦", lbl: "Orders" }, { id: "inquiries", icon: "💬", lbl: "Inquiries" },
-    { id: "invoices", icon: "🧾", lbl: "Invoices" }, { id: "settings", icon: "⚙️", lbl: "Settings" },
+    { id: "dashboard", Icon: LayoutDashboard, lbl: "Dashboard" },
+    { id: "vehicles", Icon: Car, lbl: "Vehicles" },
+    { id: "charging", Icon: Zap, lbl: "Charging Stations" },
+    { id: "parts", Icon: Wrench, lbl: "Spare Parts" },
+    { id: "orders", Icon: Package, lbl: "Orders" },
+    { id: "inquiries", Icon: MessageCircle, lbl: "Inquiries" },
+    { id: "invoices", Icon: FileText, lbl: "Invoices" },
+    { id: "settings", Icon: Settings, lbl: "Settings" },
   ];
 
   const [saving, setSaving] = useState(false);
@@ -1430,13 +1438,13 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
         </div>
         <div style={{ flex: 1 }}>
           <div className="adm-sec-lbl">Main</div>
-          {navItems.slice(0, 5).map(n => <button key={n.id} className={`adm-link${tab === n.id ? " act" : ""}`} onClick={() => setTab(n.id)}><span>{n.icon}</span>{n.lbl}</button>)}
+          {navItems.slice(0, 5).map(n => <button key={n.id} className={`adm-link${tab === n.id ? " act" : ""}`} onClick={() => setTab(n.id)}><n.Icon size={16} strokeWidth={2} />{n.lbl}</button>)}
           <div className="adm-sec-lbl" style={{ marginTop: "6px" }}>Management</div>
-          {navItems.slice(5).map(n => <button key={n.id} className={`adm-link${tab === n.id ? " act" : ""}`} onClick={() => setTab(n.id)}><span>{n.icon}</span>{n.lbl}</button>)}
+          {navItems.slice(5).map(n => <button key={n.id} className={`adm-link${tab === n.id ? " act" : ""}`} onClick={() => setTab(n.id)}><n.Icon size={16} strokeWidth={2} />{n.lbl}</button>)}
         </div>
         <div style={{ borderTop: "1px solid var(--border)", padding: "8px 0" }}>
-          <button className="adm-link" onClick={() => setView("public")}><span>🌐</span>View Website</button>
-          <button className="adm-link" onClick={onLogout} style={{ color: "#FF4A5A" }}><span>🚪</span>Logout</button>
+          <button className="adm-link" onClick={() => setView("public")}><Globe size={16} strokeWidth={2} />View Website</button>
+          <button className="adm-link" onClick={onLogout} style={{ color: "#FF4A5A" }}><LogOut size={16} strokeWidth={2} />Logout</button>
         </div>
       </aside>
 
@@ -1444,12 +1452,12 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
       <nav className="adm-mobile-nav">
         {navItems.map(n => (
           <button key={n.id} className={`adm-mob-btn${tab === n.id ? ' act' : ''}`} onClick={() => setTab(n.id)}>
-            <span className="adm-mob-btn-ico">{n.icon}</span>
+            <n.Icon size={22} strokeWidth={1.75} className="adm-mob-btn-ico" />
             <span>{n.lbl.split(' ')[0]}</span>
           </button>
         ))}
         <button className="adm-mob-btn" onClick={onLogout} style={{ color: '#FF4A5A' }}>
-          <span className="adm-mob-btn-ico">🚪</span><span>Out</span>
+          <LogOut size={22} strokeWidth={1.75} className="adm-mob-btn-ico" /><span>Out</span>
         </button>
       </nav>
 
@@ -1460,8 +1468,12 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Dashboard</div><div style={{ fontSize: "12px", color: "var(--text2)" }}>{new Date().toLocaleDateString("en-GH", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div></div>
             <div className="dash-grid">
-              {[{ icon: "🚗", lbl: "Vehicles Listed", val: vehicles.length, c: "var(--neon)" }, { icon: "📦", lbl: "Active Orders", val: orders.length, c: "var(--neon2)" }, { icon: "💬", lbl: "New Inquiries", val: inquiries.filter(i => i.status === "new").length, c: "var(--orange)" }, { icon: "💰", lbl: "Est. Revenue", val: `$${(orders.reduce((s, o) => s + o.amount, 0) / 1000).toFixed(0)}k`, c: "var(--purple)" }].map((c, i) => (
-                <div key={i} className="dc"><div className="dc-icon">{c.icon}</div><div className="dc-val" style={{ color: c.c }}>{c.val}</div><div className="dc-lbl">{c.lbl}</div></div>
+              {[{ Icon: Car, lbl: "Vehicles Listed", val: vehicles.length, c: "var(--neon)" }, { Icon: Package, lbl: "Active Orders", val: orders.length, c: "var(--neon2)" }, { Icon: MessageCircle, lbl: "New Inquiries", val: inquiries.filter(i => i.status === "new").length, c: "var(--orange)" }, { Icon: TrendingUp, lbl: "Est. Revenue", val: `$${(orders.reduce((s, o) => s + o.amount, 0) / 1000).toFixed(0)}k`, c: "var(--purple)" }].map((card, i) => (
+                <div key={i} className="dc" style={{ borderColor: `color-mix(in srgb,${card.c} 25%,transparent)` }}>
+                  <div className="dc-icon" style={{ color: card.c, background: `color-mix(in srgb,${card.c} 12%,transparent)`, border: `1px solid color-mix(in srgb,${card.c} 22%,transparent)` }}><card.Icon size={20} strokeWidth={2} /></div>
+                  <div className="dc-val" style={{ color: card.c }}>{card.val}</div>
+                  <div className="dc-lbl">{card.lbl}</div>
+                </div>
               ))}
             </div>
             <div className="adm-card" style={{ marginBottom: "14px" }}>
@@ -1660,7 +1672,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
             {/* ── DISPLAY SETTINGS ── */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
               <div className="adm-card">
-                <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "18px" }}>💰 Pricing Display</div>
+                <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "18px", display: "flex", alignItems: "center", gap: 8 }}><DollarSign size={16} style={{ color: "var(--neon)" }} />Pricing Display</div>
                 <div style={{ marginBottom: "16px" }}><Tgl on={editS.showPricesGlobal} onChange={() => setEditS({ ...editS, showPricesGlobal: !editS.showPricesGlobal })} label="Show prices globally" /><div style={{ fontSize: "11px", color: "var(--text3)", marginTop: "6px" }}>When off, all prices show "Price on Request". Override per vehicle in the Vehicles tab.</div></div>
                 <div style={{ marginBottom: "16px" }}><Tgl on={editS.showGhsPrice} onChange={() => setEditS({ ...editS, showGhsPrice: !editS.showGhsPrice })} label="Show GHS equivalent prices" /></div>
                 <div className="fg"><label className="lbl">USD → GHS Rate</label><input className="inp" type="number" step="0.1" value={editS.ghsRate} onChange={e => setEditS({ ...editS, ghsRate: +e.target.value })} /><div style={{ fontSize: "11px", color: "var(--text3)", marginTop: "5px" }}>Update this manually to keep GHS prices accurate.</div></div>
@@ -1676,7 +1688,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
             {/* ── TESTIMONIALS ── */}
             <div className="adm-card" style={{ marginBottom: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px" }}>⭐ Testimonials</div>
+                <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", display: "flex", alignItems: "center", gap: 8 }}><Star size={16} style={{ color: "var(--neon)" }} />Testimonials</div>
                 <button className="btn-sm btn-sm-neon" onClick={() => setEditS(prev => ({ ...prev, testimonials: [...(prev.testimonials || []), { id: Date.now(), name: "", role: "", text: "", stars: 5 }] }))}>+ Add</button>
               </div>
               {(editS.testimonials || []).map((t, i) => (
@@ -1696,7 +1708,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
 
             {/* ── CREDENTIALS ── */}
             <div className="adm-card">
-              <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "18px" }}>🔐 Admin Credentials</div>
+              <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "18px", display: "flex", alignItems: "center", gap: 8 }}><ShieldCheck size={16} style={{ color: "var(--neon)" }} />Admin Credentials</div>
               <div className="frow">
                 <div className="fg"><label className="lbl">Admin Email</label><input className="inp" defaultValue="admin@jaybesin.com" /></div>
                 <div className="fg"><label className="lbl">New Password</label><input className="inp" type="password" placeholder="••••••••" /></div>
