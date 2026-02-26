@@ -119,13 +119,14 @@ const GlobalStyles = () => (
     .gt-purple{background:var(--grad-purple);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
     /* Announcement bar */
-    .ann-bar{background:var(--neon);color:var(--btn-text);text-align:center;padding:9px 20px;font-size:12px;font-weight:700;letter-spacing:.5px;position:relative;z-index:1001}
+    .ann-bar{background:var(--neon);color:var(--btn-text);text-align:center;padding:9px 20px;font-size:12px;font-weight:700;letter-spacing:.5px;position:fixed;top:0;left:0;right:0;width:100%;z-index:1002}
+    .ann-bar-spacer{height:38px;width:100%}
     .ann-bar a{color:inherit;text-decoration:underline;cursor:none}
     .ann-close{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:none;font-size:16px;color:var(--btn-text);opacity:.6;transition:opacity .2s}
     .ann-close:hover{opacity:1}
 
     /* Nav */
-    .nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:18px 64px;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
+    .nav{position:fixed;left:0;right:0;z-index:1000;padding:18px 64px;display:flex;align-items:center;justify-content:space-between;transition:top .3s,padding .4s,background .4s}
     .nav.sc{background:var(--nav-bg);backdrop-filter:blur(24px);padding:12px 64px;border-bottom:1px solid var(--border)}
     .nav-logo{display:flex;align-items:center;gap:10px;cursor:none}
     .nav-logo-mark{width:36px;height:36px;border-radius:8px;background:var(--grad-neon);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--btn-text);flex-shrink:0}
@@ -409,6 +410,27 @@ const GlobalStyles = () => (
     .slide-thumb{width:64px;height:44px;border-radius:5px;object-fit:cover;border:1px solid var(--border2)}
     .slide-thumb-ph{width:64px;height:44px;border-radius:5px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border2)}
 
+    /* Mobile admin */
+    .adm-mobile-nav{display:none}
+    .adm-saving-bar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--grad-neon);z-index:9999;animation:saveProg .8s ease-in-out infinite alternate}
+    @keyframes saveProg{from{opacity:.5;transform:scaleX(.7)}to{opacity:1;transform:scaleX(1)}}
+    .adm-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+    @media(max-width:768px){
+      .adm-mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding:6px 0 20px;gap:2px}
+      .adm-mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text2);font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:4px 2px;transition:color .2s;min-width:0}
+      .adm-mob-btn.act{color:var(--neon)}
+      .adm-mob-btn-ico{font-size:22px;line-height:1}
+      .adm-main{padding:14px 14px 90px!important;margin-left:0!important}
+      .adm-hd{flex-wrap:wrap;gap:10px}
+      .adm-pg-title{font-size:18px}
+      .dash-grid{grid-template-columns:1fr 1fr!important}
+      .dc-val{font-size:22px}
+      .adm-card{padding:14px}
+      .frow{grid-template-columns:1fr!important}
+      .mo-box{max-width:100%!important;margin:0!important;border-radius:16px 16px 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-height:90vh!important}
+      .mo{align-items:flex-end!important;padding:0!important}
+    }
+
     /* Responsive */
     @media(max-width:1100px){
       .nav,.nav.sc{padding:14px 28px}
@@ -639,12 +661,12 @@ function HeroSlider({ slides = [], onExplore, onQuote }) {
 }
 
 // ─── NAV ──────────────────────────────────────────────────────────
-function Nav({ setPage, settings }) {
+function Nav({ setPage, settings, annOn }) {
   const [sc, setSc] = useState(false);
   useEffect(() => { const h = () => setSc(window.scrollY > 60); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h) }, []);
   const parts = settings.companyName.split(" ");
   return (
-    <nav className={`nav${sc ? " sc" : ""}`}>
+    <nav className={`nav${sc ? " sc" : ""}`} style={{ top: annOn ? '38px' : '0' }}>
       <div className="nav-logo" onClick={() => setPage("home")}>
         {settings.logo ? <img src={settings.logo} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "contain" }} alt="" /> : <div className="nav-logo-mark">{parts[0][0]}</div>}
         <div className="nav-brand"><span>{parts[0]}</span>{parts.slice(1).join(" ")}</div>
@@ -660,15 +682,17 @@ function Nav({ setPage, settings }) {
 }
 
 // ─── ANNOUNCEMENT BAR ─────────────────────────────────────────────
-function AnnBar({ settings, setPage }) {
-  const [gone, setGone] = useState(false);
-  if (!settings.annBarOn || gone) return null;
+function AnnBar({ settings, setPage, onClose }) {
+  if (!settings.annBarOn) return null;
   return (
-    <div className="ann-bar" style={{ paddingRight: "48px" }}>
-      {settings.annBarText}
-      {settings.annBarLink && <a href="#" onClick={e => { e.preventDefault(); setPage("garage") }}>Shop Now</a>}
-      <button className="ann-close" onClick={() => setGone(true)}>×</button>
-    </div>
+    <>
+      <div className="ann-bar" style={{ paddingRight: "48px" }}>
+        {settings.annBarText}
+        {settings.annBarLink && <a href="#" onClick={e => { e.preventDefault(); setPage("garage") }}>Shop Now</a>}
+        <button className="ann-close" onClick={onClose}>×</button>
+      </div>
+      <div className="ann-bar-spacer" />
+    </>
   );
 }
 
@@ -1176,17 +1200,89 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
     { id: "invoices", icon: "🧾", lbl: "Invoices" }, { id: "settings", icon: "⚙️", lbl: "Settings" },
   ];
 
-  const saveV = () => {
-    const v = { ...newV, id: editVId || Date.now(), price: +newV.price, duties: +newV.duties, totalGhana: +newV.totalGhana };
-    setVehicles(prev => editVId ? prev.map(x => x.id === editVId ? v : x) : [...prev, v]);
-    setShowAddV(false); setEditVId(null); setNewV(blankV);
+  const [saving, setSaving] = useState(false);
+
+  // ── Upload any base64 images to Storage, return Firebase URLs ──
+  const uploadIfBase64 = async (val, path) => {
+    if (val && typeof val === 'string' && val.startsWith('data:')) {
+      return await uploadImage(val, path);
+    }
+    return val;
   };
+
+  const saveV = async () => {
+    setSaving(true);
+    try {
+      const ts = Date.now();
+      const images = await Promise.all(
+        (newV.images || []).map((img, i) => uploadIfBase64(img, `vehicles/${ts}_img_${i}`))
+      );
+      const logo = await uploadIfBase64(newV.logo, `vehicles/${ts}_logo`);
+      const v = { ...newV, id: editVId || String(ts), price: +newV.price, duties: +newV.duties, totalGhana: +newV.totalGhana, images, logo };
+      await saveVehicle(v);
+      setShowAddV(false); setEditVId(null); setNewV(blankV);
+    } catch (e) { console.error('saveV:', e); }
+    setSaving(false);
+  };
+
+  const deleteV = async (id) => {
+    setSaving(true);
+    try { await deleteVehicle(String(id)); } catch (e) { console.error('deleteV:', e); }
+    setSaving(false);
+  };
+
+  const addCharger = async () => {
+    setSaving(true);
+    try { await saveCharger({ ...newC, price: +newC.price, installation: +newC.installation }); setShowAddC(false); setNewC({ name: '', brand: '', type: 'AC', power: '', price: '', installation: '', emoji: '⚡' }); } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
+  const removeCharger = async (id) => {
+    setSaving(true);
+    try { await deleteCharger(String(id)); } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
+  const addPart = async () => {
+    setSaving(true);
+    try { await savePart({ ...newP, price: +newP.price }); setShowAddP(false); setNewP({ name: '', compatible: '', category: '', price: '', emoji: '🔧' }); } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
+  const removePart = async (id) => {
+    setSaving(true);
+    try { await deletePart(String(id)); } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
+  const updateOrderStatus = async (id, status) => {
+    try { await saveOrder({ id: String(id), status }); } catch (e) { console.error(e); }
+  };
+
+  const handleMarkReplied = async (id) => {
+    try { await updateInquiryStatus(String(id), 'replied'); } catch (e) { console.error(e); }
+  };
+
   const openEdit = (v) => { setNewV({ ...v, price: String(v.price), duties: String(v.duties), totalGhana: String(v.totalGhana) }); setEditVId(v.id); setShowAddV(true) };
-  const saveSettings = () => { setSettings(editS); setSaveOk(true); setTimeout(() => setSaveOk(false), 3000) };
+
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    try {
+      const ts = Date.now();
+      // Upload hero slide images & logo to Storage
+      const heroSlides = await Promise.all(
+        (editS.heroSlides || []).map(async (s, i) => ({ ...s, image: await uploadIfBase64(s.image, `hero/slide_${i}_${ts}`) }))
+      );
+      const logo = await uploadIfBase64(editS.logo, `brand/logo_${ts}`);
+      const finalSettings = { ...editS, heroSlides, logo };
+      await setSettings(finalSettings);
+      setSaveOk(true); setTimeout(() => setSaveOk(false), 3000);
+    } catch (e) { console.error('saveSettings:', e); }
+    setSaving(false);
+  };
 
   const applyPreset = (name) => {
-    const p = PRESETS[name];
-    setEditS(prev => ({ ...prev, theme: p }));
+    setEditS(prev => ({ ...prev, theme: PRESETS[name] }));
   };
 
   // Color groups for the theme editor
@@ -1199,6 +1295,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
 
   return (
     <div className="adm-wrap">
+      {saving && <div className="adm-saving-bar" />}
       <aside className="adm-side">
         <div className="adm-side-hd">
           <div className="adm-side-logo">Jaybesin <span>Autos</span></div>
@@ -1215,6 +1312,19 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
           <button className="adm-link" onClick={onLogout} style={{ color: "#FF4A5A" }}><span>🚪</span>Logout</button>
         </div>
       </aside>
+
+      {/* Mobile bottom nav */}
+      <nav className="adm-mobile-nav">
+        {navItems.map(n => (
+          <button key={n.id} className={`adm-mob-btn${tab === n.id ? ' act' : ''}`} onClick={() => setTab(n.id)}>
+            <span className="adm-mob-btn-ico">{n.icon}</span>
+            <span>{n.lbl.split(' ')[0]}</span>
+          </button>
+        ))}
+        <button className="adm-mob-btn" onClick={onLogout} style={{ color: '#FF4A5A' }}>
+          <span className="adm-mob-btn-ico">🚪</span><span>Out</span>
+        </button>
+      </nav>
 
       <main className="adm-main">
 
@@ -1243,21 +1353,23 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Vehicles ({vehicles.length})</div><button className="btn-p" onClick={() => { setNewV(blankV); setEditVId(null); setShowAddV(true) }}>+ Add Vehicle</button></div>
             <div className="adm-card">
-              <table className="adm-table">
-                <thead><tr><th>Vehicle</th><th>Type</th><th>Fuel</th><th>FOB $</th><th>Show Price</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody>
-                  {vehicles.map(v => (
-                    <tr key={v.id}>
-                      <td><div style={{ display: "flex", alignItems: "center", gap: "10px" }}>{v.images && v.images.length > 0 ? <img src={v.images[0]} style={{ width: "40px", height: "30px", objectFit: "cover", borderRadius: "4px" }} alt="" /> : <div style={{ width: "40px", height: "30px", background: "var(--bg4)", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>{v.emoji}</div>}<div><div style={{ fontWeight: 600, color: "var(--text)", fontSize: "13px" }}>{v.brand} {v.model}</div><div style={{ fontSize: "10px", color: "var(--text3)" }}>{v.year}{v.featured ? " · ⭐" : ""}</div></div></div></td>
-                      <td>{v.type}</td><td>{fuelTag(v.fuel)}</td>
-                      <td style={{ color: "var(--neon)", fontFamily: "Syne,sans-serif", fontWeight: 700 }}>{fmtUSD(v.price)}</td>
-                      <td><Tgl on={v.showPrice} onChange={() => setVehicles(prev => prev.map(x => x.id === v.id ? { ...x, showPrice: !x.showPrice } : x))} /></td>
-                      <td>{availTag(v.availability)}</td>
-                      <td><div style={{ display: "flex", gap: "5px" }}><button className="btn-sm btn-sm-neon" onClick={() => openEdit(v)}>Edit</button><button className="btn-sm btn-sm-red" onClick={() => setVehicles(prev => prev.filter(x => x.id !== v.id))}>Del</button></div></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="adm-table-wrap">
+                <table className="adm-table">
+                  <thead><tr><th>Vehicle</th><th>Type</th><th>Fuel</th><th>FOB $</th><th>Show Price</th><th>Status</th><th>Actions</th></tr></thead>
+                  <tbody>
+                    {vehicles.map(v => (
+                      <tr key={v.id}>
+                        <td><div style={{ display: "flex", alignItems: "center", gap: "10px" }}>{v.images && v.images.length > 0 ? <img src={v.images[0]} style={{ width: "40px", height: "30px", objectFit: "cover", borderRadius: "4px" }} alt="" /> : <div style={{ width: "40px", height: "30px", background: "var(--bg4)", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>{v.emoji}</div>}<div><div style={{ fontWeight: 600, color: "var(--text)", fontSize: "13px" }}>{v.brand} {v.model}</div><div style={{ fontSize: "10px", color: "var(--text3)" }}>{v.year}{v.featured ? " · ⭐" : ""}</div></div></div></td>
+                        <td>{v.type}</td><td>{fuelTag(v.fuel)}</td>
+                        <td style={{ color: "var(--neon)", fontFamily: "Syne,sans-serif", fontWeight: 700 }}>{fmtUSD(v.price)}</td>
+                        <td><Tgl on={v.showPrice} onChange={async () => { const updated = { ...v, showPrice: !v.showPrice }; await saveVehicle(updated); }} /></td>
+                        <td>{availTag(v.availability)}</td>
+                        <td><div style={{ display: "flex", gap: "5px" }}><button className="btn-sm btn-sm-neon" onClick={() => openEdit(v)}>Edit</button><button className="btn-sm btn-sm-red" onClick={() => deleteV(v.id)}>Del</button></div></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -1266,7 +1378,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
         {tab === "charging" && (
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Charging Stations</div><button className="btn-p" onClick={() => setShowAddC(true)}>+ Add Station</button></div>
-            <div className="adm-card"><table className="adm-table"><thead><tr><th>Name</th><th>Brand</th><th>Type</th><th>Power</th><th>Price</th><th>Install</th><th>Act</th></tr></thead><tbody>{charging.map(c => <tr key={c.id}><td>{c.emoji} <strong style={{ color: "var(--text)" }}>{c.name}</strong></td><td>{c.brand}</td><td><span className="tag tag-2">{c.type}</span></td><td>{c.power}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(c.price)}</td><td>{fmtUSD(c.installation)}</td><td><button className="btn-sm btn-sm-red" onClick={() => setCharging(prev => prev.filter(x => x.id !== c.id))}>Del</button></td></tr>)}</tbody></table></div>
+            <div className="adm-card"><div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Name</th><th>Brand</th><th>Type</th><th>Power</th><th>Price</th><th>Install</th><th>Act</th></tr></thead><tbody>{charging.map(c => <tr key={c.id}><td>{c.emoji} <strong style={{ color: "var(--text)" }}>{c.name}</strong></td><td>{c.brand}</td><td><span className="tag tag-2">{c.type}</span></td><td>{c.power}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(c.price)}</td><td>{fmtUSD(c.installation)}</td><td><button className="btn-sm btn-sm-red" onClick={() => removeCharger(c.id)}>Del</button></td></tr>)}</tbody></table></div></div>
           </div>
         )}
 
@@ -1274,7 +1386,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
         {tab === "parts" && (
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Spare Parts</div><button className="btn-p" onClick={() => setShowAddP(true)}>+ Add Part</button></div>
-            <div className="adm-card"><table className="adm-table"><thead><tr><th>Part</th><th>Category</th><th>Compatible</th><th>Price</th><th>Act</th></tr></thead><tbody>{parts.map(p => <tr key={p.id}><td>{p.emoji} <strong style={{ color: "var(--text)" }}>{p.name}</strong></td><td>{p.category}</td><td style={{ fontSize: "11px" }}>{p.compatible}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(p.price)}</td><td><button className="btn-sm btn-sm-red" onClick={() => setParts(prev => prev.filter(x => x.id !== p.id))}>Del</button></td></tr>)}</tbody></table></div>
+            <div className="adm-card"><div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Part</th><th>Category</th><th>Compatible</th><th>Price</th><th>Act</th></tr></thead><tbody>{parts.map(p => <tr key={p.id}><td>{p.emoji} <strong style={{ color: "var(--text)" }}>{p.name}</strong></td><td>{p.category}</td><td style={{ fontSize: "11px" }}>{p.compatible}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(p.price)}</td><td><button className="btn-sm btn-sm-red" onClick={() => removePart(p.id)}>Del</button></td></tr>)}</tbody></table></div></div>
           </div>
         )}
 
@@ -1286,7 +1398,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
               <div key={o.id} className="adm-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "18px", flexWrap: "wrap", gap: "12px" }}>
                   <div><div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "17px" }}>{o.item}</div><div style={{ fontSize: "12px", color: "var(--text2)", marginTop: "3px" }}>{o.id} · {o.customer} · {o.email} · {o.phone}</div></div>
-                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}><div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "20px", color: "var(--neon)" }}>{fmtUSD(o.amount)}</div><select className="inp" style={{ width: "auto", fontSize: "10px", padding: "6px 10px" }} value={o.status} onChange={e => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: e.target.value } : x))}>{["confirmed", "payment_received", "sourcing", "port_china", "ocean_freight", "tema_port", "customs", "ready", "delivered"].map(s => <option key={s} value={s}>{s.replace(/_/g, " ").toUpperCase()}</option>)}</select></div>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}><div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "20px", color: "var(--neon)" }}>{fmtUSD(o.amount)}</div><select className="inp" style={{ width: "auto", fontSize: "10px", padding: "6px 10px" }} value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value)}>{["confirmed", "payment_received", "sourcing", "port_china", "ocean_freight", "tema_port", "customs", "ready", "delivered"].map(s => <option key={s} value={s}>{s.replace(/_/g, " ").toUpperCase()}</option>)}</select></div>
                 </div>
                 <div className="track-line" style={{ marginBottom: "14px" }}>
                   {o.tracking.map((step, i) => <div key={i} className="track-step"><div className={`track-dot${step.done ? " done" : step.active ? " active" : ""}`}>{step.done ? "✓" : step.active ? "●" : ""}</div><div style={{ fontSize: "12px", color: step.done ? "var(--text)" : "var(--text2)", fontWeight: 600 }}>{step.step}</div><div style={{ fontSize: "10px", color: "var(--text3)" }}>{step.date}</div></div>)}
@@ -1306,7 +1418,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", flexWrap: "wrap", gap: "8px" }}><div><div style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: "14px" }}>{inq.name}</div><div style={{ fontSize: "11px", color: "var(--text2)" }}>{inq.email} · {inq.phone} · {inq.date}</div></div><div style={{ display: "flex", gap: "6px" }}><span className="tag tag-2">{inq.type}</span><span className={`tag${inq.status === "new" ? " tag-3" : " tag-g"}`}>{inq.status}</span></div></div>
                 <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--neon2)", marginBottom: "5px" }}>{inq.subject}</div>
                 <div style={{ fontSize: "13px", color: "var(--text2)", lineHeight: 1.7, marginBottom: "12px" }}>{inq.message}</div>
-                <div style={{ display: "flex", gap: "8px" }}><button className="btn-sm btn-sm-neon" onClick={() => setInquiries(prev => prev.map(x => x.id === inq.id ? { ...x, status: "replied" } : x))}>{inq.status === "new" ? "Mark Replied" : "Replied ✓"}</button><button className="btn-sm btn-sm-ghost">Send Quote</button><button className="btn-sm btn-sm-ghost">Create Order</button></div>
+                <div style={{ display: "flex", gap: "8px" }}><button className="btn-sm btn-sm-neon" onClick={() => handleMarkReplied(inq.id)}>{inq.status === "new" ? "Mark Replied" : "Replied ✓"}</button><button className="btn-sm btn-sm-ghost">Send Quote</button><button className="btn-sm btn-sm-ghost">Create Order</button></div>
               </div>
             ))}
           </div>
@@ -1510,7 +1622,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
               <div className="frow"><div className="fg"><label className="lbl">Price (USD)</label><input className="inp" type="number" value={newC.price} onChange={e => setNewC({ ...newC, price: e.target.value })} /></div><div className="fg"><label className="lbl">Installation (USD)</label><input className="inp" type="number" value={newC.installation} onChange={e => setNewC({ ...newC, installation: e.target.value })} /></div></div>
               <div className="fg"><label className="lbl">Emoji</label><input className="inp" value={newC.emoji} onChange={e => setNewC({ ...newC, emoji: e.target.value })} /></div>
             </div>
-            <div className="mo-ft"><button className="btn-sm btn-sm-ghost" onClick={() => setShowAddC(false)}>Cancel</button><button className="btn-p" onClick={() => { setCharging(prev => [...prev, { ...newC, id: Date.now(), price: +newC.price, installation: +newC.installation }]); setShowAddC(false); setNewC({ name: "", brand: "", type: "AC", power: "", price: "", installation: "", emoji: "⚡" }) }}>Add →</button></div>
+            <div className="mo-ft"><button className="btn-sm btn-sm-ghost" onClick={() => { setShowAddC(false) }}>Cancel</button><button className="btn-p" onClick={addCharger} disabled={saving}>{saving ? 'Saving…' : 'Add →'}</button></div>
           </div>
         </div>
       )}
@@ -1526,7 +1638,7 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
               <div className="fg"><label className="lbl">Compatible Vehicles</label><input className="inp" value={newP.compatible} onChange={e => setNewP({ ...newP, compatible: e.target.value })} /></div>
               <div className="fg"><label className="lbl">Emoji Icon</label><input className="inp" value={newP.emoji} onChange={e => setNewP({ ...newP, emoji: e.target.value })} /></div>
             </div>
-            <div className="mo-ft"><button className="btn-sm btn-sm-ghost" onClick={() => setShowAddP(false)}>Cancel</button><button className="btn-p" onClick={() => { setParts(prev => [...prev, { ...newP, id: Date.now(), price: +newP.price }]); setShowAddP(false); setNewP({ name: "", compatible: "", category: "", price: "", emoji: "🔧" }) }}>Add →</button></div>
+            <div className="mo-ft"><button className="btn-sm btn-sm-ghost" onClick={() => setShowAddP(false)}>Cancel</button><button className="btn-p" onClick={addPart} disabled={saving}>{saving ? 'Saving…' : 'Add →'}</button></div>
           </div>
         </div>
       )}
@@ -1622,19 +1734,20 @@ export default function App() {
       /></>
   );
 
+  const [annVisible, setAnnVisible] = useState(true);
+  const annOn = settings.annBarOn && annVisible;
+
   return (
     <>
       <GlobalStyles />
       <ThemeInjector theme={settings.theme || DEFAULT_THEME} />
       <Cursor />
       <div className="grain" />
-      <AnnBar settings={settings} setPage={go} />
-      <div style={{ paddingTop: settings.annBarOn ? "0" : "0" }}>
-        <Nav setPage={go} settings={settings} />
-        <main>{renderPage()}</main>
-        <Footer setPage={go} onAdminClick={goAdmin} settings={settings} />
-        <WAFloat whatsapp={settings.whatsapp} />
-      </div>
+      <AnnBar settings={{ ...settings, annBarOn: annOn }} setPage={go} onClose={() => setAnnVisible(false)} />
+      <Nav setPage={go} settings={settings} annOn={annOn} />
+      <main style={{ paddingTop: annOn ? '98px' : '60px' }}>{renderPage()}</main>
+      <Footer setPage={go} onAdminClick={goAdmin} settings={settings} />
+      <WAFloat whatsapp={settings.whatsapp} />
     </>
   );
 }
