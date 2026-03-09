@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Car, Zap, Wrench, Package, MessageCircle, LayoutDashboard, FileText, Settings, LogOut, Globe, Phone, MapPin, Mail, DollarSign, Star, ShieldCheck, Lock, TrendingUp, Users } from "lucide-react";
+import { Car, Zap, Wrench, Package, MessageCircle, LayoutDashboard, FileText, Settings, LogOut, Globe, Phone, MapPin, Mail, DollarSign, Star, ShieldCheck, Lock, TrendingUp, Users, Flame } from "lucide-react";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebase";
 import {
-  onVehicles, onCharging, onParts, onOrders, onInquiries,
-  saveVehicle, deleteVehicle, saveCharger, deleteCharger,
+  onVehicles, onCars, onCharging, onParts, onOrders, onInquiries,
+  saveVehicle, saveCar, deleteVehicle, saveCharger, deleteCharger,
   savePart, deletePart, saveOrder, deleteOrder,
   updateInquiryStatus, deleteInquiry, addInquiry,
-  getSettings, saveSettings as fsaveSettings,
+  getSettings, saveSettings as fsaveSettings, uploadImage,
   seedFirestore
 } from "./firestore";
+import { MarketplaceBrowsePage, CarDetailPageMarket, MarketplaceSimplePage, MarketplaceAdminTab, MarketplaceHighlights } from "./marketplace";
 
 // ─────────────────────────────────────────────────────────────────
 //  THEME SYSTEM
@@ -830,8 +831,12 @@ function Nav({ setPage, settings, annOn }) {
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
   const navLinks = [
-    ["Garage", "garage"], ["EV Charging", "charging"],
-    ["Spare Parts", "parts"], ["Track Order", "track"], ["Contact", "contact"],
+    ["Home", "home"],
+    ["Browse Cars", "browse"],
+    ["Import From China", "import"],
+    ["Sell Car", "sell"],
+    ["Deals", "deals"],
+    ["Account", "account"],
   ];
   const go = (p) => { setPage(p); setDrawerOpen(false); };
   const parts = settings.companyName.split(" ");
@@ -849,7 +854,7 @@ function Nav({ setPage, settings, annOn }) {
             <li key={l}><a href="#" onClick={e => { e.preventDefault(); go(p) }}>{l}</a></li>
           ))}
         </ul>
-        <button className="btn-p" onClick={() => go("contact")} style={{ padding: "9px 22px", fontSize: "11px" }}>Get a Quote</button>
+        <button className="btn-p" onClick={() => go("browse")} style={{ padding: "9px 22px", fontSize: "11px" }}>Browse Cars</button>
         {/* Hamburger */}
         <button className={`nav-burger${drawerOpen ? " open" : ""}`} onClick={() => setDrawerOpen(o => !o)} aria-label="Menu">
           <span /><span /><span />
@@ -871,12 +876,12 @@ function Nav({ setPage, settings, annOn }) {
         {navLinks.map(([l, p]) => (
           <button key={l} className="nav-drawer-link" onClick={() => go(p)}>
             <span style={{ margin: "0 14px 0 0", fontSize: 20 }}>
-              {p === "garage" ? "🚗" : p === "charging" ? "⚡" : p === "parts" ? "🔧" : p === "track" ? "📦" : "📞"}
+              {p === "home" ? "🏠" : p === "browse" ? "🚗" : p === "import" ? "🚢" : p === "sell" ? "💼" : p === "deals" ? "🔥" : "👤"}
             </span>
             {l}
           </button>
         ))}
-        <button className="btn-p nav-drawer-cta" onClick={() => go("contact")}>Get a Quote →</button>
+        <button className="btn-p nav-drawer-cta" onClick={() => go("browse")}>Browse Cars →</button>
         <div style={{ marginTop: "auto", paddingTop: 24, fontSize: 11, color: "var(--text3)", textAlign: "center" }}>
           {settings.phone} · {settings.email}
         </div>
@@ -892,7 +897,7 @@ function AnnBar({ settings, setPage, onClose }) {
     <>
       <div className="ann-bar" style={{ paddingRight: "48px" }}>
         {settings.annBarText}
-        {settings.annBarLink && <a href="#" onClick={e => { e.preventDefault(); setPage("garage") }}>Shop Now</a>}
+        {settings.annBarLink && <a href="#" onClick={e => { e.preventDefault(); setPage("browse") }}>Shop Now</a>}
         <button className="ann-close" onClick={onClose}>×</button>
       </div>
       <div className="ann-bar-spacer" />
@@ -1380,7 +1385,7 @@ function AdminLogin({ onLogin }) {
 }
 
 // ─── ADMIN PANEL ──────────────────────────────────────────────────
-function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setParts, orders, setOrders, inquiries, setInquiries, settings, setSettings, onLogout, setView }) {
+function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharging, parts, setParts, orders, setOrders, inquiries, setInquiries, settings, setSettings, onLogout, setView }) {
   const [tab, setTab] = useState("dashboard");
   const [showAddV, setShowAddV] = useState(false);
   const [editVId, setEditVId] = useState(null);
@@ -1399,7 +1404,8 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
 
   const navItems = [
     { id: "dashboard", Icon: LayoutDashboard, lbl: "Dashboard" },
-    { id: "vehicles", Icon: Car, lbl: "Vehicles" },
+    { id: "vehicles", Icon: Car, lbl: "Legacy Vehicles" },
+    { id: "marketplace", Icon: Globe, lbl: "Marketplace Cars" },
     { id: "charging", Icon: Zap, lbl: "Charging Stations" },
     { id: "parts", Icon: Wrench, lbl: "Spare Parts" },
     { id: "orders", Icon: Package, lbl: "Orders" },
@@ -1524,6 +1530,17 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
     { title: "Other", keys: [["borderHex", "Border Color"], ["footerBg", "Footer Background"], ["btnText", "Button Text (on accent)"]] },
   ];
 
+  const marketCars = Array.isArray(cars) ? cars : [];
+  const verifiedCars = marketCars.filter(c => (c.tags || []).includes("verified")).length;
+  const hotCars = marketCars.filter(c => (c.tags || []).includes("hot") || (c.tags || []).includes("clearance")).length;
+  const newCars = marketCars.filter(c => (c.tags || []).includes("new")).length;
+  const avgLanded = marketCars.length
+    ? marketCars.reduce((sum, c) => sum + Number(c.totalLandedCost || c.totalGhana || 0), 0) / marketCars.length
+    : 0;
+  const newestCars = [...marketCars]
+    .sort((a, b) => new Date(b.dateAdded || 0).getTime() - new Date(a.dateAdded || 0).getTime())
+    .slice(0, 6);
+
   return (
     <div className="adm-wrap">
       {saving && <div className="adm-saving-bar" />}
@@ -1568,23 +1585,81 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
         {/* Dashboard */}
         {tab === "dashboard" && (
           <div>
-            <div className="adm-hd"><div className="adm-pg-title">Dashboard</div><div style={{ fontSize: "12px", color: "var(--text2)" }}>{new Date().toLocaleDateString("en-GH", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div></div>
+            <div className="adm-hd">
+              <div className="adm-pg-title">Marketplace Dashboard</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <button className="btn-sm btn-sm-neon" onClick={() => setTab("marketplace")}>+ Add Marketplace Car</button>
+                <button className="btn-sm btn-sm-ghost" onClick={() => setTab("inquiries")}>View Inquiries</button>
+              </div>
+            </div>
+
             <div className="dash-grid">
-              {[{ Icon: Car, lbl: "Vehicles Listed", val: vehicles.length, c: "var(--neon)" }, { Icon: Package, lbl: "Active Orders", val: orders.length, c: "var(--neon2)" }, { Icon: MessageCircle, lbl: "New Inquiries", val: inquiries.filter(i => i.status === "new").length, c: "var(--orange)" }, { Icon: TrendingUp, lbl: "Est. Revenue", val: `$${(orders.reduce((s, o) => s + o.amount, 0) / 1000).toFixed(0)}k`, c: "var(--purple)" }].map((card, i) => (
-                <div key={i} className="dc" style={{ borderColor: `color-mix(in srgb,${card.c} 25%,transparent)` }}>
-                  <div className="dc-icon" style={{ color: card.c, background: `color-mix(in srgb,${card.c} 12%,transparent)`, border: `1px solid color-mix(in srgb,${card.c} 22%,transparent)` }}><card.Icon size={20} strokeWidth={2} /></div>
+              {[{ Icon: Car, lbl: "Marketplace Cars", val: marketCars.length, c: "var(--neon)" },
+                { Icon: ShieldCheck, lbl: "Verified Cars", val: verifiedCars, c: "var(--neon2)" },
+                { Icon: Flame, lbl: "Hot / Clearance", val: hotCars, c: "var(--orange)" },
+                { Icon: TrendingUp, lbl: "Avg Landed Cost", val: fmtUSD(avgLanded), c: "var(--purple)" }].map((card, i) => (
+                <div key={i} className="dc" style={{ borderColor: card.c }}>
+                  <div className="dc-icon" style={{ color: card.c }}><card.Icon size={20} strokeWidth={2} /></div>
                   <div className="dc-val" style={{ color: card.c }}>{card.val}</div>
                   <div className="dc-lbl">{card.lbl}</div>
                 </div>
               ))}
             </div>
-            <div className="adm-card" style={{ marginBottom: "14px" }}>
-              <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "14px" }}>Recent Orders</div>
-              <table className="adm-table"><thead><tr><th>ID</th><th>Customer</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr></thead><tbody>{orders.map(o => <tr key={o.id} style={{ cursor: "pointer" }} onClick={() => setTab("orders")}><td style={{ color: "var(--neon)", fontFamily: "monospace", fontSize: "11px" }}>{o.id}</td><td style={{ color: "var(--text)" }}>{o.customer}</td><td>{o.item}</td><td style={{ color: "var(--neon)", fontFamily: "Syne,sans-serif", fontWeight: 700 }}>{fmtUSD(o.amount)}</td><td><span className="tag tag-1">{o.status.replace(/_/g, " ")}</span></td></tr>)}</tbody></table>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14, marginBottom: 14 }}>
+              <div className="adm-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px" }}>Recent Marketplace Cars</div>
+                  <button className="btn-sm btn-sm-ghost" onClick={() => setTab("marketplace")}>Manage</button>
+                </div>
+                <div className="adm-table-wrap">
+                  <table className="adm-table">
+                    <thead><tr><th>Car</th><th>Year</th><th>Tags</th><th>Total Landed</th></tr></thead>
+                    <tbody>
+                      {newestCars.length ? newestCars.map((c) => (
+                        <tr key={c.id}>
+                          <td style={{ color: "var(--text)", fontWeight: 600 }}>{c.brand} {c.model}</td>
+                          <td>{c.year || "-"}</td>
+                          <td style={{ fontSize: 11 }}>{(c.tags || []).slice(0, 2).join(", ") || "-"}</td>
+                          <td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(Number(c.totalLandedCost || c.totalGhana || 0))}</td>
+                        </tr>
+                      )) : <tr><td colSpan={4} style={{ color: "var(--text3)", textAlign: "center" }}>No marketplace cars yet.</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="adm-card">
+                <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: 12 }}>Live Signals</div>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--border2)", paddingBottom: 8 }}>
+                    <span style={{ color: "var(--text2)", fontSize: 12 }}>New Tags</span>
+                    <strong style={{ color: "var(--neon)" }}>{newCars}</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--border2)", paddingBottom: 8 }}>
+                    <span style={{ color: "var(--text2)", fontSize: 12 }}>Open Inquiries</span>
+                    <strong style={{ color: "var(--orange)" }}>{inquiries.filter(i => i.status === "new").length}</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--border2)", paddingBottom: 8 }}>
+                    <span style={{ color: "var(--text2)", fontSize: 12 }}>Tracked Orders</span>
+                    <strong style={{ color: "var(--neon2)" }}>{orders.length}</strong>
+                  </div>
+                  <button className="btn-sm btn-sm-neon" onClick={() => setTab("marketplace")}>Upload New Car</button>
+                </div>
+              </div>
             </div>
+
             <div className="adm-card">
-              <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "14px" }}>Recent Inquiries</div>
-              {inquiries.slice(0, 3).map(inq => <div key={inq.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border2)", gap: "12px" }}><div><div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>{inq.name} <span style={{ color: "var(--text2)", fontWeight: 300 }}>— {inq.subject}</span></div><div style={{ fontSize: "11px", color: "var(--text3)", marginTop: "1px" }}>{inq.date}</div></div><span className={`tag${inq.status === "new" ? " tag-3" : " tag-g"}`}>{inq.status}</span></div>)}
+              <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: 10 }}>Recent Inquiries</div>
+              {inquiries.slice(0, 4).map(inq => (
+                <div key={inq.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border2)", gap: "12px" }}>
+                  <div>
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>{inq.name} <span style={{ color: "var(--text2)", fontWeight: 300 }}>- {inq.subject}</span></div>
+                    <div style={{ fontSize: "11px", color: "var(--text3)", marginTop: "1px" }}>{inq.date}</div>
+                  </div>
+                  <span className={inq.status === "new" ? "tag tag-3" : "tag tag-g"}>{inq.status}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -1612,6 +1687,14 @@ function AdminPanel({ vehicles, setVehicles, charging, setCharging, parts, setPa
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Marketplace Cars */}
+        {tab === "marketplace" && (
+          <div>
+            <div className="adm-hd"><div className="adm-pg-title">Marketplace Cars ({cars.length})</div></div>
+            <MarketplaceAdminTab cars={cars} onSaveCar={onSaveCar} saving={saving} />
           </div>
         )}
 
@@ -1899,6 +1982,7 @@ export default function App() {
 
   // ── Data state (populated from Firestore or fallback to local) ──
   const [vehicles, setVehicles] = useState(VEHICLES0);
+  const [cars, setCars] = useState([]);
   const [charging, setCharging] = useState(CHARGING0);
   const [parts, setParts] = useState(PARTS0);
   const [orders, setOrders] = useState(ORDERS0);
@@ -1918,13 +2002,14 @@ export default function App() {
   // ── Firestore real-time listeners ──
   useEffect(() => {
     const u1 = onVehicles(setVehicles);
+    const uCars = onCars(setCars);
     const u2 = onCharging(setCharging);
     const u3 = onParts(setParts);
     const u4 = onOrders(setOrders);
     const u5 = onInquiries(setInquiries);
     // Settings (single doc)
     getSettings().then(s => { if (s) setSettings(prev => ({ ...prev, ...s })); });
-    return () => { u1(); u2(); u3(); u4(); u5(); };
+    return () => { u1(); uCars(); u2(); u3(); u4(); u5(); };
   }, []);
 
   const go = (p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }) };
@@ -1936,15 +2021,43 @@ export default function App() {
     try { await fsaveSettings(s); } catch (e) { console.warn("Settings save:", e); }
   };
 
+  const marketplaceCars = cars.length ? cars : vehicles;
+
+  const handleSaveCar = async (carData) => {
+    const id = carData.id ? String(carData.id) : String(Date.now());
+    const uploadIfBase64 = async (val, path) => {
+      if (val && typeof val === "string" && val.startsWith("data:")) {
+        try { return await uploadImage(val, path); }
+        catch (e) { console.warn("Storage upload skipped:", e.message); return val; }
+      }
+      return val;
+    };
+
+    const images = await Promise.all((carData.images || []).map((img, i) => uploadIfBase64(img, `cars/${id}_img_${i}`)));
+    const documents = await Promise.all((carData.documents || []).map(async (doc, i) => ({
+      ...doc,
+      url: await uploadIfBase64(doc?.url, `cars/${id}_doc_${i}`),
+    })));
+
+    const payload = { ...carData, id, images, documents };
+    await saveCar(payload);
+  };
+
   const renderPage = () => {
-    if (page === "home") return <HomePage setPage={go} vehicles={vehicles} settings={settings} />;
+    if (page === "home") return <div style={{ display: "grid", gap: 10 }}><MarketplaceBrowsePage cars={marketplaceCars} setPage={go} hero /><div style={{ paddingInline: 18, maxWidth: 1400, margin: "0 auto" }}><MarketplaceHighlights /></div></div>;
+    if (page === "browse") return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} />;
+    if (page === "import") return <MarketplaceSimplePage title="Import From China" subtitle="Tell us your preferred brand, model, and budget. We handle sourcing, inspection, shipping, insurance, and Ghana clearance with transparent landed cost estimates." ctaLabel="Start Import Request" onCta={() => go("contact")} />;
+    if (page === "sell") return <MarketplaceSimplePage title="Sell Car" subtitle="List your car with Jaybesin Autos and reach verified buyers. Include full service history and receive qualified leads." ctaLabel="List My Car" onCta={() => go("contact")} />;
+    if (page === "deals") return <MarketplaceBrowsePage cars={marketplaceCars.filter((c) => (c.tags || []).includes("hot") || (c.tags || []).includes("clearance"))} setPage={go} />;
+    if (page === "account") return <MarketplaceSimplePage title="Account" subtitle="Track your reservations, import requests, and deal alerts. Sign-in integration can be connected to Firebase Auth user profiles." ctaLabel="Browse Cars" onCta={() => go("browse")} />;
     if (page === "garage") return <GaragePage vehicles={vehicles} setPage={go} settings={settings} />;
     if (page === "charging") return <ChargingPage charging={charging} />;
     if (page === "parts") return <PartsPage parts={parts} />;
     if (page === "track") return <TrackingPage orders={orders} />;
     if (page === "contact" || page === "services") return <ContactPage settings={settings} />;
-    if (page.startsWith("vehicle-")) { const id = parseInt(page.replace("vehicle-", "")); return <VehicleDetailPage vehicle={vehicles.find(x => x.id === id)} setPage={go} settings={settings} /> }
-    return <HomePage setPage={go} vehicles={vehicles} settings={settings} />;
+    if (page.startsWith("car-")) { const id = page.replace("car-", ""); return <CarDetailPageMarket car={marketplaceCars.find((x) => String(x.id) === String(id))} setPage={go} settings={settings} />; }
+    if (page.startsWith("vehicle-")) { const id = page.replace("vehicle-", ""); return <VehicleDetailPage vehicle={vehicles.find((x) => String(x.id) === String(id) || Number(x.id) === Number(id))} setPage={go} settings={settings} />; }
+    return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} hero />;
   };
 
   if (!fbReady) return (
@@ -1965,6 +2078,7 @@ export default function App() {
     <><GlobalStyles /><ThemeInjector theme={settings.theme || DEFAULT_THEME} /><Cursor /><div className="grain" />
       <AdminPanel
         vehicles={vehicles} setVehicles={setVehicles}
+        cars={marketplaceCars} onSaveCar={handleSaveCar}
         charging={charging} setCharging={setCharging}
         parts={parts} setParts={setParts}
         orders={orders} setOrders={setOrders}

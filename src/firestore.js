@@ -14,6 +14,7 @@ import { db, storage } from "./firebase";
 // ─── COLLECTIONS ──────────────────────────────────────────────────
 const COL = {
     vehicles: "vehicles",
+    cars: "cars",
     charging: "charging",
     parts: "parts",
     orders: "orders",
@@ -46,6 +47,24 @@ export async function saveVehicle(vehicle) {
 }
 export async function deleteVehicle(id) {
     await deleteDoc(doc(db, COL.vehicles, id));
+}
+
+// ─── CARS (Marketplace) ──────────────────────────────────────────
+export function onCars(cb) {
+    return onSnapshot(collection(db, COL.cars), (snap) => {
+        cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+}
+export async function saveCar(car) {
+    if (car.id && typeof car.id === "string") {
+        const { id, ...data } = car;
+        await setDoc(doc(db, COL.cars, id), data, { merge: true });
+    } else {
+        await addDoc(collection(db, COL.cars), car);
+    }
+}
+export async function deleteCar(id) {
+    await deleteDoc(doc(db, COL.cars, id));
 }
 
 // ─── CHARGING ─────────────────────────────────────────────────────
@@ -133,7 +152,7 @@ export async function uploadImage(base64DataUrl, path) {
 
 // ─── SEED: Write default data to Firestore ────────────────────────
 // Call this ONCE from the admin panel to initialise the database
-export async function seedFirestore(VEHICLES0, CHARGING0, PARTS0, ORDERS0, SETTINGS0) {
+export async function seedFirestore(VEHICLES0, CHARGING0, PARTS0, ORDERS0, SETTINGS0, CARS0 = []) {
     // Settings
     const { theme, ...settingsRest } = SETTINGS0;
     await setDoc(doc(db, COL.settings, "main"), settingsRest, { merge: true });
@@ -142,6 +161,11 @@ export async function seedFirestore(VEHICLES0, CHARGING0, PARTS0, ORDERS0, SETTI
     for (const v of VEHICLES0) {
         const { id, ...data } = v;
         await setDoc(doc(db, COL.vehicles, String(id)), data);
+        }
+    // Marketplace cars
+    for (const c of CARS0) {
+        const { id, ...data } = c;
+        await setDoc(doc(db, COL.cars, String(id)), data);
     }
     // Charging
     for (const c of CHARGING0) {
