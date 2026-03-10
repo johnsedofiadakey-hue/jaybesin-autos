@@ -139,6 +139,7 @@ const GlobalStyles = () => (
     .nav-brand{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-.3px}
     .nav-brand span{color:var(--neon)}
     .nav-links{display:flex;gap:30px;list-style:none}
+    .nav-actions{display:flex;gap:8px;align-items:center}
     .nav-links a{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text2);text-decoration:none;cursor:none;transition:color .25s;position:relative}
     .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--neon);transition:width .3s;border-radius:1px}
     .nav-links a:hover{color:var(--neon)}
@@ -369,6 +370,8 @@ const GlobalStyles = () => (
     .adm-table tr:hover td{background:var(--bg2)}
     .adm-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:22px;margin-bottom:16px}
     .dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+    .adm-split{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:14px}
+    .adm-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .dc{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:22px;position:relative;overflow:hidden}
     .dc-icon{font-size:22px;margin-bottom:10px}
     .dc-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800}
@@ -458,7 +461,7 @@ const GlobalStyles = () => (
     @media(max-width:768px){
       /* nav */
       .nav,.nav.sc{padding:12px 18px}
-      .nav-links,.nav>.btn-p{display:none}
+      .nav-links,.nav-actions{display:none}
       .nav-burger{display:flex}
       /* drawer */
       .nav-drawer{display:flex;flex-direction:column;position:fixed;inset:0;background:var(--bg);z-index:990;padding:80px 28px 40px;gap:6px;transform:translateX(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);overflow-y:auto}
@@ -536,6 +539,8 @@ const GlobalStyles = () => (
       .hero-h1{font-size:clamp(30px,10vw,44px)}
       .stats-band{grid-template-columns:1fr 1fr}
       .dash-grid{grid-template-columns:1fr!important}
+      .adm-split{grid-template-columns:1fr!important}
+      .adm-form-grid{grid-template-columns:1fr!important}
       .v-card-img{height:180px}
       .sec{padding:44px 16px}
       .testi-card{width:88vw}
@@ -818,7 +823,7 @@ function HeroSlider({ slides = [], onExplore, onQuote }) {
 }
 
 // ─── NAV ──────────────────────────────────────────────────────────
-function Nav({ setPage, settings, annOn, page }) {
+function Nav({ setPage, settings, annOn, page, onAdminClick }) {
   const [sc, setSc] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   useEffect(() => {
@@ -855,7 +860,7 @@ function Nav({ setPage, settings, annOn, page }) {
             <li key={l}><a href="#" style={{ color: page === p ? "var(--neon)" : undefined }} onClick={e => { e.preventDefault(); go(p) }}>{l}</a></li>
           ))}
         </ul>
-        <button className="btn-p" onClick={() => go("browse")} style={{ padding: "9px 22px", fontSize: "11px" }}>Browse Cars</button>
+        <div className="nav-actions"><button className="btn-sm btn-sm-ghost" onClick={onAdminClick}>Admin</button><button className="btn-p" onClick={() => go("browse")} style={{ padding: "9px 22px", fontSize: "11px" }}>Browse Cars</button></div>
         {/* Hamburger */}
         <button className={`nav-burger${drawerOpen ? " open" : ""}`} onClick={() => setDrawerOpen(o => !o)} aria-label="Menu">
           <span /><span /><span />
@@ -883,6 +888,7 @@ function Nav({ setPage, settings, annOn, page }) {
           </button>
         ))}
         <button className="btn-p nav-drawer-cta" onClick={() => go("browse")}>Browse Cars →</button>
+        <button className="btn-sm btn-sm-ghost" style={{ marginTop: "10px", width: "100%", justifyContent: "center" }} onClick={onAdminClick}>Admin Portal</button>
         <div style={{ marginTop: "auto", paddingTop: 24, fontSize: 11, color: "var(--text3)", textAlign: "center" }}>
           {settings.phone} · {settings.email}
         </div>
@@ -1350,7 +1356,7 @@ function WAFloat({ whatsapp }) {
 }
 
 // ─── ADMIN LOGIN (Firebase Auth) ──────────────────────────────────
-function AdminLogin({ onLogin }) {
+function AdminLogin({ onLogin, onBack }) {
   const [c, setC] = useState({ email: "", password: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1370,6 +1376,7 @@ function AdminLogin({ onLogin }) {
       {[300, 500, 700].map(s => <div key={s} style={{ position: "absolute", width: s + "px", height: s + "px", borderRadius: "50%", border: "1px solid color-mix(in srgb,var(--neon) 8%,transparent)", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
       )}
       <div className="login-card">
+        <button className="btn-sm btn-sm-ghost" style={{ marginBottom: "16px" }} onClick={onBack}>← Back</button>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "var(--grad-neon)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "20px", color: "var(--btn-text)" }}>A</div>
           <div className="login-title">Admin <span style={{ color: "var(--neon)" }}>Portal</span></div>
@@ -1582,6 +1589,10 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
       </nav>
 
       <main className="adm-main">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "8px", flexWrap: "wrap" }}>
+          <button className="btn-sm btn-sm-ghost" onClick={() => setView("public")}>← Back to Website</button>
+          <button className="btn-sm btn-sm-neon" onClick={() => setTab("dashboard")}>Dashboard</button>
+        </div>
 
         {/* Dashboard */}
         {tab === "dashboard" && (
@@ -1607,7 +1618,7 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
               ))}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14, marginBottom: 14 }}>
+            <div className="adm-split">
               <div className="adm-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px" }}>Recent Marketplace Cars</div>
@@ -2047,10 +2058,10 @@ export default function App() {
   const renderPage = () => {
     if (page === "home") return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} hero />;
     if (page === "browse") return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} />;
-    if (page === "import") return <MarketplaceSimplePage title="Import From China" subtitle="Tell us your preferred brand, model, and budget. We handle sourcing, inspection, shipping, insurance, and Ghana clearance with transparent landed cost estimates." ctaLabel="Start Import Request" onCta={() => go("contact")} />;
-    if (page === "sell") return <MarketplaceSimplePage title="Sell Car" subtitle="List your car with Jaybesin Autos and reach verified buyers. Include full service history and receive qualified leads." ctaLabel="List My Car" onCta={() => go("contact")} />;
+    if (page === "import") return <MarketplaceSimplePage title="Import From China" subtitle="Tell us your preferred brand, model, and budget. We handle sourcing, inspection, shipping, insurance, and Ghana clearance with transparent landed cost estimates." ctaLabel="Start Import Request" onCta={() => go("contact")} onBack={() => go("home")} />;
+    if (page === "sell") return <MarketplaceSimplePage title="Sell Car" subtitle="List your car with Jaybesin Autos and reach verified buyers. Include full service history and receive qualified leads." ctaLabel="List My Car" onCta={() => go("contact")} onBack={() => go("home")} />;
     if (page === "deals") return <MarketplaceBrowsePage cars={marketplaceCars.filter((c) => (c.tags || []).includes("hot") || (c.tags || []).includes("clearance"))} setPage={go} />;
-    if (page === "account") return <MarketplaceSimplePage title="Account" subtitle="Track your reservations, import requests, and deal alerts. Sign-in integration can be connected to Firebase Auth user profiles." ctaLabel="Browse Cars" onCta={() => go("browse")} />;
+    if (page === "account") return <MarketplaceSimplePage title="Account" subtitle="Track your reservations, import requests, and deal alerts. Sign-in integration can be connected to Firebase Auth user profiles." ctaLabel="Browse Cars" onCta={() => go("browse")} onBack={() => go("home")} />;
     if (page === "garage") return <GaragePage vehicles={vehicles} setPage={go} settings={settings} />;
     if (page === "charging") return <ChargingPage charging={charging} />;
     if (page === "parts") return <PartsPage parts={parts} />;
@@ -2072,7 +2083,7 @@ export default function App() {
 
   if (view === "admin-login") return (
     <><GlobalStyles /><ThemeInjector theme={settings.theme || DEFAULT_THEME} /><Cursor /><div className="grain" />
-      <AdminLogin onLogin={() => { setView("admin") }} /></>
+      <AdminLogin onBack={() => setView("public")} onLogin={() => { setView("admin") }} /></>
   );
 
   if (view === "admin") return (
@@ -2102,8 +2113,8 @@ export default function App() {
       <Cursor />
       <div className="grain" />
       <AnnBar settings={{ ...settings, annBarOn: annOn }} setPage={go} onClose={() => setAnnVisible(false)} />
-      <Nav setPage={go} settings={settings} annOn={annOn} page={page} />
-      <main style={{ paddingTop: annOn ? '98px' : '60px' }}>{renderPage()}</main>
+      <Nav setPage={go} settings={settings} annOn={annOn} page={page} onAdminClick={goAdmin} />
+      <main style={{ paddingTop: isMarketplaceSurface ? "0px" : (annOn ? "98px" : "60px") }}>{renderPage()}</main>
       {isMarketplaceSurface && <MarketplaceMobileNav setPage={go} activePage={page} />}
       {!isMarketplaceSurface && <Footer setPage={go} onAdminClick={goAdmin} settings={settings} />}
       {!isMarketplaceSurface && <WAFloat whatsapp={settings.whatsapp} />}

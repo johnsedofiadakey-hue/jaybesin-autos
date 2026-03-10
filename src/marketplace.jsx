@@ -152,7 +152,7 @@ export function CarDetailPageMarket({ car, setPage, settings }) {
   };
 
   return (
-    <div style={{ paddingTop: 96, maxWidth: 1200, margin: "0 auto", paddingInline: 14, paddingBottom: 96 }}>
+    <div style={{ paddingTop: 72, maxWidth: 1200, margin: "0 auto", paddingInline: 14, paddingBottom: 96 }}>
       <button className="btn-sm btn-sm-ghost" onClick={() => setPage("browse")}>← Back</button>
       <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 12, marginTop: 8 }}>
         <section style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 10 }}>
@@ -193,10 +193,10 @@ export function CarDetailPageMarket({ car, setPage, settings }) {
   );
 }
 
-export function MarketplaceSimplePage({ title, subtitle, ctaLabel, onCta }) {
+export function MarketplaceSimplePage({ title, subtitle, ctaLabel, onCta, onBack }) {
   return (
-    <div style={{ paddingTop: 110, maxWidth: 920, margin: "0 auto", paddingInline: 18, paddingBottom: 96 }}>
-      <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 14, padding: 20 }}>
+    <div style={{ paddingTop: 72, maxWidth: 920, margin: "0 auto", paddingInline: 18, paddingBottom: 96 }}>
+      <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 14, padding: 20 }}><div style={{ marginBottom: 10 }}>{onBack && <button className="btn-sm btn-sm-ghost" onClick={onBack}>← Back</button>}</div>
         <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 30, marginBottom: 6, color: "#101828" }}>{title}</div>
         <div style={{ color: "#667085", marginBottom: 16 }}>{subtitle}</div>
         {ctaLabel && <button className="btn-p" onClick={onCta}>{ctaLabel}</button>}
@@ -267,7 +267,7 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving }) {
     <div style={{ display: "grid", gap: 14 }}>
       <div className="adm-card">
         <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, marginBottom: 12 }}>Upload Marketplace Car</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div className="adm-form-grid">
           {["brand", "model", "year", "mileage", "seats", "engine", "priceChina", "inspectionFee", "shippingFee", "insuranceFee", "clearingEstimate", "locationChina"].map((k) => <div className="fg" key={k}><label className="lbl">{k}</label><input className="inp" value={form[k]} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} /></div>)}
           <div className="fg"><label className="lbl">fuel</label><select className="inp" value={form.fuel} onChange={(e) => setForm((f) => ({ ...f, fuel: e.target.value }))}><option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option></select></div>
           <div className="fg"><label className="lbl">transmission</label><select className="inp" value={form.transmission} onChange={(e) => setForm((f) => ({ ...f, transmission: e.target.value }))}><option>Automatic</option><option>Manual</option></select></div>

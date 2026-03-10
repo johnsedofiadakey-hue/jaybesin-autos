@@ -127,8 +127,8 @@ export function MarketplaceHomepageLayout({
       </div>
 
       <style>{`
-        .mk-wrap{background:#f2f4f7;min-height:100vh;padding-top:${hero ? 86 : 96}px;padding-bottom:96px}
-        .mk-top-tabs{display:flex;gap:14px;overflow-x:auto;padding:0 12px 8px;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:58px;z-index:25}
+        .mk-wrap{background:#f2f4f7;min-height:100vh;padding-top:56px;padding-bottom:96px}
+        .mk-top-tabs{display:flex;gap:14px;overflow-x:auto;padding:0 12px 8px;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:56px;z-index:25}
         .mk-top-tab{border:0;background:transparent;padding:12px 0;font-size:16px;color:#344054;font-weight:500;white-space:nowrap}
         .mk-top-tab.act{color:#101828;font-weight:800;position:relative}
         .mk-top-tab.act::after{content:'';position:absolute;left:8px;right:8px;bottom:2px;height:3px;background:#3b82f6;border-radius:4px}
