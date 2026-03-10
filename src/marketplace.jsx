@@ -25,6 +25,15 @@ const asNum = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const digitsOnly = (v = "") => String(v).replace(/\D/g, "");
+const sendLeadToWhatsApp = (whatsapp, message) => {
+  const phone = digitsOnly(whatsapp);
+  if (!phone || !message) return false;
+  const url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  return Boolean(win);
+};
+
 const toDoc = (doc, idx) => {
   if (!doc) return null;
   if (typeof doc === "string") return { name: `Document ${idx + 1}`, url: doc, type: "report" };
@@ -209,18 +218,33 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
     setSubmitting(true);
     setFeedback({ type: "", message: "" });
     try {
+      const leadMessage =
+        type + " Request\n" +
+        "Customer: " + buyer.name.trim() + "\n" +
+        "Phone: " + buyer.phone.trim() + "\n" +
+        (buyer.email.trim() ? "Email: " + buyer.email.trim() + "\n" : "") +
+        "Car: " + row.brand + " " + row.model + " (" + row.year + ")\n" +
+        "FOB: " + usd(row.priceChina) + "\n" +
+        "Purchase Cost: " + usd(row.purchaseCost) + "\n" +
+        "Est. Landed: " + usd(row.estimatedLandedCost) + "\n" +
+        "Note: " + (buyer.note || "N/A");
+
       await addInquiry({
         name: buyer.name.trim(),
         email: buyer.email.trim(),
         phone: buyer.phone.trim(),
-        subject: `${type} - ${row.brand} ${row.model}`,
-        message:
-          `${type} request for ${row.brand} ${row.model} (${row.year}).\n` +
-          `FOB: ${usd(row.priceChina)} | Purchase Cost: ${usd(row.purchaseCost)} | Estimated Landed: ${usd(row.estimatedLandedCost)}.\n` +
-          `Customer note: ${buyer.note || "N/A"}`,
+        subject: type + " - " + row.brand + " " + row.model,
+        message: leadMessage,
         type: "vehicle",
       });
-      setFeedback({ type: "ok", message: `${type} request sent successfully. Our team will contact you shortly.` });
+
+      const whatsappSent = sendLeadToWhatsApp(settings?.whatsapp, leadMessage);
+      setFeedback({
+        type: "ok",
+        message: whatsappSent
+          ? type + " request sent. WhatsApp lead alert opened for your agent."
+          : type + " request sent successfully. WhatsApp alert could not open on this device.",
+      });
     } catch (e) {
       setFeedback({ type: "error", message: `Could not send request. Please try WhatsApp or call us. (${e.message})` });
     } finally {
@@ -359,15 +383,27 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
     setLoading(true);
     setStatus("");
     try {
+      const leadMessage =
+        "Account Request\n" +
+        "Name: " + form.name.trim() + "\n" +
+        "Phone: " + form.phone.trim() + "\n" +
+        (form.email.trim() ? "Email: " + form.email.trim() + "\n" : "") +
+        (form.tracking.trim() ? "Tracking: " + form.tracking.trim() + "\n" : "") +
+        "Message: " + (form.message || "Customer account/support request");
+
       await addInquiry({
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
-        subject: form.tracking ? `Account Tracking Request - ${form.tracking}` : "Account Request",
-        message: `${form.message || "Customer account/support request"}${form.tracking ? `\nTracking Number: ${form.tracking}` : ""}`,
+        subject: form.tracking ? "Account Tracking Request - " + form.tracking : "Account Request",
+        message: leadMessage,
         type: "account",
       });
-      setStatus("Request submitted. Our team will contact you with your reservation/import updates.");
+
+      const whatsappSent = sendLeadToWhatsApp(settings?.whatsapp, leadMessage);
+      setStatus(whatsappSent
+        ? "Request submitted and WhatsApp lead alert opened."
+        : "Request submitted. WhatsApp alert could not open on this device.");
       setForm({ name: "", phone: "", email: "", tracking: "", message: "" });
     } catch (e) {
       setStatus(`Could not submit now. Please try again or contact support. (${e.message})`);
