@@ -127,18 +127,31 @@ export function MarketplaceHomepageLayout({
       </div>
 
       <style>{`
-        .mk-wrap{background:#f2f4f7;min-height:100vh;padding-top:56px;padding-bottom:96px}
-        .mk-top-tabs{display:flex;gap:14px;overflow-x:auto;padding:0 12px 8px;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:56px;z-index:25}
+        .mk-wrap{background:#f2f4f7;min-height:100vh;padding-top:48px;padding-bottom:96px}
+        .mk-top-tabs{display:flex;gap:14px;overflow-x:auto;padding:0 12px 8px;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:48px;z-index:25}
         .mk-top-tab{border:0;background:transparent;padding:12px 0;font-size:16px;color:#344054;font-weight:500;white-space:nowrap}
         .mk-top-tab.act{color:#101828;font-weight:800;position:relative}
         .mk-top-tab.act::after{content:'';position:absolute;left:8px;right:8px;bottom:2px;height:3px;background:#3b82f6;border-radius:4px}
-        .mk-content{padding:10px 12px}
+        .mk-content{padding:6px 12px}
         .mk-search-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:10px}
         .mk-search-box{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #eaecf0;border-radius:10px;padding:0 10px;height:40px}
         .mk-search-box input{border:0;outline:0;background:transparent;width:100%;font-size:13px;color:#101828}
         .mk-filter-btn,.mk-sort{height:40px;border:1px solid #eaecf0;background:#fff;border-radius:10px;padding:0 10px;font-size:12px;color:#344054}
         .mk-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
         .mk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+        @media (max-width: 640px){
+          .mk-wrap{padding-top:44px}
+          .mk-top-tabs{top:44px}
+          .mk-content{padding:6px 10px}
+          .mk-search-row{grid-template-columns:1fr;gap:7px}
+          .mk-filter-btn,.mk-sort{width:100%}
+          .mk-filters{grid-template-columns:1fr 1fr}
+          .mk-grid{gap:8px}
+        }
+        @media (max-width: 420px){
+          .mk-filters{grid-template-columns:1fr}
+          .mk-grid{grid-template-columns:1fr 1fr;gap:8px}
+        }
         @media (min-width: 1024px){
           .mk-content{max-width:1280px;margin:0 auto}
           .mk-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}

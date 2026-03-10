@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ShieldCheck, Flame, Sparkles, MessageCircle, Phone, Clock3, CheckCircle2 } from "lucide-react";
-import { addInquiry } from "./firestore";
+import { addInquiry, saveOrder } from "./firestore";
 import { MarketplaceHomepageLayout } from "./components/marketplace/HomepageLayout";
 
 const QUICK_TABS = ["All Cars", "SUV", "Sedan", "Pickup", "Truck", "Electric", "Cheap Deals", "New Arrivals", "Verified Cars"];
@@ -229,21 +229,44 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
         "Est. Landed: " + usd(row.estimatedLandedCost) + "\n" +
         "Note: " + (buyer.note || "N/A");
 
-      await addInquiry({
-        name: buyer.name.trim(),
+      const trackingId = "REQ-" + String(Date.now()).slice(-8);
+      const orderPayload = {
+        id: trackingId,
+        customer: buyer.name.trim(),
         email: buyer.email.trim(),
         phone: buyer.phone.trim(),
-        subject: type + " - " + row.brand + " " + row.model,
-        message: leadMessage,
+        item: row.brand + " " + row.model,
         type: "vehicle",
-      });
+        amount: row.purchaseCost,
+        status: "confirmed",
+        date: new Date().toISOString().slice(0, 10),
+        tracking: [
+          { step: "Order Request Received", done: true, date: new Date().toLocaleDateString() },
+          { step: "Agent Review", done: false, active: true, date: "Pending" },
+          { step: "Payment Confirmation", done: false, date: "Pending" },
+          { step: "Shipping to Ghana", done: false, date: "Pending" },
+          { step: "Ready for Collection", done: false, date: "Pending" },
+        ],
+      };
 
-      const whatsappSent = sendLeadToWhatsApp(settings?.whatsapp, leadMessage);
+      await Promise.all([
+        addInquiry({
+          name: buyer.name.trim(),
+          email: buyer.email.trim(),
+          phone: buyer.phone.trim(),
+          subject: type + " - " + row.brand + " " + row.model,
+          message: leadMessage + "\nTracking ID: " + trackingId,
+          type: "vehicle",
+        }),
+        saveOrder(orderPayload),
+      ]);
+
+      const whatsappSent = sendLeadToWhatsApp(settings?.whatsapp, leadMessage + "\nTracking ID: " + trackingId);
       setFeedback({
         type: "ok",
-        message: whatsappSent
+        message: (whatsappSent
           ? type + " request sent. WhatsApp lead alert opened for your agent."
-          : type + " request sent successfully. WhatsApp alert could not open on this device.",
+          : type + " request sent successfully. WhatsApp alert could not open on this device.") + " Tracking ID: " + trackingId,
       });
     } catch (e) {
       setFeedback({ type: "error", message: `Could not send request. Please try WhatsApp or call us. (${e.message})` });
@@ -432,7 +455,7 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
             <button className="btn-p" onClick={submit} disabled={loading}>{loading ? "Submitting..." : "Submit Request"}</button>
             <button className="btn-o" onClick={() => setPage("browse")}><span>Browse Cars</span></button>
-            <button className="btn-sm btn-sm-neon" onClick={() => window.open(`tel:${(settings.phone || "").replace(/\s+/g, "")}`)}>Call Agent</button>
+            <button className="btn-sm btn-sm-neon" onClick={() => setPage("track")}>Track Existing Order</button>
             <button className="btn-sm btn-sm-ghost" onClick={() => window.open(`https://wa.me/${(settings.whatsapp || "").replace(/\D/g, "")}`)}>WhatsApp</button>
           </div>
           {status && <div style={{ marginTop: 8, fontSize: 12, color: "#344054" }}>{status}</div>}
@@ -445,7 +468,9 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
 }
 
 export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = DEFAULT_TIMELINE, importLeadTimeDays = 45, onImportTimelineChange, onImportLeadTimeChange, onSaveTimeline }) {
-  const [form, setForm] = useState({ id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", imagesText: "", documentsText: "", description: "", locationChina: "", tagsText: "" });
+  const blankForm = { id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", imagesText: "", documentsText: "", description: "", locationChina: "", tagsText: "" };
+  const [form, setForm] = useState(blankForm);
+  const [editingId, setEditingId] = useState("");
 
   const timelineRows = Array.isArray(importTimeline) && importTimeline.length ? importTimeline : DEFAULT_TIMELINE;
   const purchaseTotal = asNum(form.priceChina) + asNum(form.inspectionFee) + asNum(form.shippingFee);
@@ -471,13 +496,45 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
     setForm((f) => ({ ...f, documentsText: [f.documentsText, ...values].filter(Boolean).join("\n") }));
   };
 
+  const clearEditor = () => {
+    setEditingId("");
+    setForm(blankForm);
+  };
+
+  const loadCarIntoForm = (row) => {
+    const c = normalizeCar(row);
+    setEditingId(String(c.id || ""));
+    setForm({
+      id: String(c.id || ""),
+      brand: c.brand || "",
+      model: c.model || "",
+      year: String(c.year || ""),
+      mileage: String(c.mileage || ""),
+      fuel: c.fuel || "Petrol",
+      transmission: c.transmission || "Automatic",
+      bodyType: c.bodyType || "SUV",
+      seats: String(c.seats || 5),
+      engine: c.engine || "",
+      priceChina: String(c.priceChina || 0),
+      inspectionFee: String(c.inspectionFee || 0),
+      shippingFee: String(c.shippingFee || 0),
+      clearingEstimate: String(c.clearingEstimate || 0),
+      imagesText: (c.images || []).join("\n"),
+      documentsText: (c.documents || []).map((d) => d?.url).filter(Boolean).join("\n"),
+      description: c.description || "",
+      locationChina: c.locationChina || "",
+      tagsText: (c.tags || []).join(", "),
+    });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const save = async () => {
     const images = form.imagesText.split("\n").map((s) => s.trim()).filter(Boolean);
-    const documents = form.documentsText.split("\n").map((s) => s.trim()).filter(Boolean).map((url, idx) => ({ name: `Report ${idx + 1}`, url, type: "report" }));
+    const documents = form.documentsText.split("\n").map((s) => s.trim()).filter(Boolean).map((url, idx) => ({ name: "Report " + (idx + 1), url, type: "report" }));
     const tags = form.tagsText.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 
     await onSaveCar({
-      id: form.id || undefined,
+      id: editingId || form.id || undefined,
       brand: form.brand,
       model: form.model,
       year: asNum(form.year),
@@ -502,7 +559,7 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
       dateAdded: new Date().toISOString(),
     });
 
-    setForm({ id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", imagesText: "", documentsText: "", description: "", locationChina: "", tagsText: "" });
+    clearEditor();
   };
 
   const updateTimeline = (index, key, value) => {
@@ -521,13 +578,15 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
     onImportTimelineChange(timelineRows.filter((_, idx) => idx !== index));
   };
 
+  const sortedCars = [...cars].sort((a, b) => new Date(b.dateAdded || 0).getTime() - new Date(a.dateAdded || 0).getTime());
+
   return (
     <div style={{ display: "grid", gap: 14 }}>
       <div className="adm-card">
         <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, marginBottom: 12 }}>Import Timeline (Global)</div>
         <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>
           {timelineRows.map((row, idx) => (
-            <div key={`${row.step}-${idx}`} style={{ display: "grid", gridTemplateColumns: "1fr 120px auto", gap: 8 }}>
+            <div key={row.step + "-" + idx} style={{ display: "grid", gridTemplateColumns: "1fr 120px auto", gap: 8 }}>
               <input className="inp" value={row.step} onChange={(e) => updateTimeline(idx, "step", e.target.value)} placeholder="Step name" />
               <input className="inp" type="number" min="0" value={row.days} onChange={(e) => updateTimeline(idx, "days", e.target.value)} placeholder="days" />
               <button className="btn-sm btn-sm-red" onClick={() => removeTimelineStep(idx)} disabled={timelineRows.length <= 1}>Del</button>
@@ -547,9 +606,14 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
       </div>
 
       <div className="adm-card">
-        <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, marginBottom: 12 }}>Upload Marketplace Car</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+          <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800 }}>{editingId ? "Edit Marketplace Car" : "Upload Marketplace Car"}</div>
+          {editingId && <button className="btn-sm btn-sm-ghost" onClick={clearEditor}>Cancel Edit</button>}
+        </div>
+
         <div className="adm-form-grid">
           {[
+            ["id", "id (optional)"],
             ["brand", "brand"],
             ["model", "model"],
             ["year", "year"],
@@ -569,6 +633,7 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
           <div className="fg"><label className="lbl">bodyType</label><select className="inp" value={form.bodyType} onChange={(e) => setForm((f) => ({ ...f, bodyType: e.target.value }))}><option>SUV</option><option>Sedan</option><option>Pickup</option><option>Truck</option><option>Hatchback</option></select></div>
           <div className="fg"><label className="lbl">tags (comma)</label><input className="inp" value={form.tagsText} onChange={(e) => setForm((f) => ({ ...f, tagsText: e.target.value }))} placeholder="hot, verified, new" /></div>
         </div>
+
         <div className="fg"><label className="lbl">description</label><textarea className="inp" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></div>
         <div className="fg"><label className="lbl">images (URL/base64 per line)</label><textarea className="inp" rows={3} value={form.imagesText} onChange={(e) => setForm((f) => ({ ...f, imagesText: e.target.value }))} /></div>
         <div className="fg"><label className="lbl">upload image files</label><input className="inp" type="file" accept="image/*" multiple onChange={(e) => addImageFiles(e.target.files)} /></div>
@@ -577,27 +642,42 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
 
         <div style={{ borderTop: "1px solid var(--border2)", paddingTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <div style={{ fontSize: 13, color: "var(--text2)", display: "grid", gap: 3 }}>
+            <span>FOB: <strong style={{ color: "var(--text)" }}>{usd(form.priceChina)}</strong></span>
+            <span>Inspection: <strong style={{ color: "var(--text)" }}>{usd(form.inspectionFee)}</strong></span>
+            <span>Shipping: <strong style={{ color: "var(--text)" }}>{usd(form.shippingFee)}</strong></span>
+            <span>Estimated Duty/Clearance: <strong style={{ color: "var(--text)" }}>{usd(form.clearingEstimate)}</strong></span>
             <span>Total Purchase Cost: <strong style={{ color: "var(--neon)" }}>{usd(purchaseTotal)}</strong></span>
             <span>Estimated Landed (guide): <strong style={{ color: "var(--orange)" }}>{usd(estimatedLanded)}</strong></span>
           </div>
-          <button className="btn-p" onClick={save} disabled={saving || !form.brand || !form.model}>{saving ? "Saving..." : "Save Car"}</button>
+          <button className="btn-p" onClick={save} disabled={saving || !form.brand || !form.model}>{saving ? "Saving..." : (editingId ? "Update Car" : "Save Car")}</button>
         </div>
       </div>
 
       <div className="adm-card">
         <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, marginBottom: 10 }}>Marketplace Cars ({cars.length})</div>
         <div style={{ display: "grid", gap: 8 }}>
-          {cars.slice(0, 12).map((row) => {
+          {sortedCars.slice(0, 20).map((row) => {
             const c = normalizeCar(row);
             return (
-              <div key={c.id} style={{ border: "1px solid var(--border2)", borderRadius: 8, padding: "8px 10px", display: "flex", justifyContent: "space-between", gap: 8 }}>
-                <div>
-                  <div style={{ fontWeight: 700 }}>{c.brand} {c.model} ({c.year})</div>
-                  <div style={{ fontSize: 12, color: "var(--text2)" }}>{c.bodyType} · {c.fuel} · {c.transmission}</div>
+              <div key={c.id} style={{ border: "1px solid var(--border2)", borderRadius: 8, padding: "10px", display: "grid", gap: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{c.brand} {c.model} ({c.year})</div>
+                    <div style={{ fontSize: 12, color: "var(--text2)" }}>{c.bodyType} · {c.fuel} · {c.transmission} · Seats: {c.seats} · Engine: {c.engine || "N/A"}</div>
+                    <div style={{ fontSize: 11, color: "var(--text3)" }}>Docs: {(c.documents || []).length} · Tags: {(c.tags || []).join(", ") || "-"}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button className="btn-sm btn-sm-neon" onClick={() => loadCarIntoForm(c)}>Edit</button>
+                  </div>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 11, color: "var(--text3)" }}>Purchase</div>
-                  <div style={{ fontWeight: 800, color: "var(--neon)" }}>{usd(c.purchaseCost)}</div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 8 }}>
+                  <div style={{ fontSize: 12, color: "var(--text2)" }}>FOB: <strong style={{ color: "var(--text)" }}>{usd(c.priceChina)}</strong></div>
+                  <div style={{ fontSize: 12, color: "var(--text2)" }}>Inspection: <strong style={{ color: "var(--text)" }}>{usd(c.inspectionFee)}</strong></div>
+                  <div style={{ fontSize: 12, color: "var(--text2)" }}>Shipping: <strong style={{ color: "var(--text)" }}>{usd(c.shippingFee)}</strong></div>
+                  <div style={{ fontSize: 12, color: "var(--text2)" }}>Est Duty: <strong style={{ color: "var(--text)" }}>{usd(c.clearingEstimate)}</strong></div>
+                  <div style={{ fontSize: 12, color: "var(--text2)" }}>Purchase: <strong style={{ color: "var(--neon)" }}>{usd(c.purchaseCost)}</strong></div>
+                  <div style={{ fontSize: 12, color: "var(--text2)" }}>Est Landed: <strong style={{ color: "var(--orange)" }}>{usd(c.estimatedLandedCost)}</strong></div>
                 </div>
               </div>
             );
@@ -606,12 +686,13 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
       </div>
 
       <div className="adm-card" style={{ fontSize: 12, color: "var(--text2)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text)", fontWeight: 700, marginBottom: 8 }}><ShieldCheck size={14} /> Firestore `cars` schema</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text)", fontWeight: 700, marginBottom: 8 }}><ShieldCheck size={14} /> Firestore \`cars\` schema</div>
         <div>id, brand, model, year, mileage, fuel, transmission, bodyType, seats, engine, priceChina (FOB), inspectionFee, shippingFee, clearingEstimate (estimate only), purchaseCost, estimatedLandedCost, images[], documents[], description, locationChina, dateAdded, tags[].</div>
       </div>
     </div>
   );
 }
+
 
 export function MarketplaceHighlights() {
   const items = [{ icon: <Flame size={14} />, text: "Hot Listings" }, { icon: <ShieldCheck size={14} />, text: "Verified Cars" }, { icon: <Sparkles size={14} />, text: "Transparent Costing" }];

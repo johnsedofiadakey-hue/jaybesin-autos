@@ -92,7 +92,7 @@ function ThemeInjector({ theme: t }) {
 // ─────────────────────────────────────────────────────────────────
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
     *,*::before,*::after{box-sizing:border-box}
     html,body{margin:0;padding:0;overflow-x:hidden;overscroll-behavior-x:none;-webkit-overflow-scrolling:touch}
     *,.cursor-el{box-sizing:border-box}
@@ -136,7 +136,7 @@ const GlobalStyles = () => (
     .nav.sc{background:var(--nav-bg);backdrop-filter:blur(24px);padding:12px 64px;border-bottom:1px solid var(--border)}
     .nav-logo{display:flex;align-items:center;gap:10px;cursor:none}
     .nav-logo-mark{width:36px;height:36px;border-radius:8px;background:var(--grad-neon);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--btn-text);flex-shrink:0}
-    .nav-brand{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-.3px}
+    .nav-brand{font-family:'Cormorant Garamond','Times New Roman',serif;font-size:23px;font-weight:600;letter-spacing:.2px;line-height:1}
     .nav-brand span{color:var(--neon)}
     .nav-links{display:flex;gap:30px;list-style:none}
     .nav-actions{display:flex;gap:8px;align-items:center}
@@ -1260,8 +1260,8 @@ function TrackingPage({ orders }) {
         <h1 className="sec-h rv" style={{ transitionDelay: ".1s" }}>Track Your <span className="gt-neon">Order</span></h1>
         <p className="sec-p rv" style={{ transitionDelay: ".2s" }}>Enter your order ID to see real-time status.</p>
         <div style={{ maxWidth: "500px", marginTop: "44px" }} className="rv">
-          <div className="fg"><label className="lbl">Order ID</label><div style={{ display: "flex", gap: "10px" }}><input className="inp" placeholder="e.g. ACG-2024-001" value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === "Enter" && search()} /><button className="btn-p" onClick={search}>Track →</button></div></div>
-          <div style={{ fontSize: "11px", color: "var(--text3)" }}>Demo: ACG-2024-001</div>
+          <div className="fg"><label className="lbl">Order ID</label><div style={{ display: "flex", gap: "10px" }}><input className="inp" placeholder="e.g. REQ-12345678 or ACG-2024-001" value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === "Enter" && search()} /><button className="btn-p" onClick={search}>Track →</button></div></div>
+          <div style={{ fontSize: "11px", color: "var(--text3)" }}>Examples: REQ-12345678 or ACG-2024-001</div>
         </div>
         {err && <div className="alert al-er" style={{ maxWidth: "500px", marginTop: "18px" }}>Order not found. Please check your Order ID.</div>}
         {result && (
@@ -1520,6 +1520,140 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
   const handleMarkReplied = async (id) => {
     try { await updateInquiryStatus(String(id), 'replied'); }
     catch (e) { showErr(`Update failed: ${e.message}`); }
+  };
+
+  const invoiceNoFor = (order, idx = 0) => {
+    if (order?.invoice?.number) return order.invoice.number;
+    return `INV-${new Date().getFullYear()}-${String(idx + 1).padStart(3, "0")}`;
+  };
+
+  const renderInvoiceHtml = (order, invoiceNumber) => {
+    const amount = Number(order?.invoice?.amount ?? order?.amount ?? 0);
+    const dueDate = order?.invoice?.dueDate || "";
+    const issueDate = new Date().toISOString().slice(0, 10);
+    const notes = order?.invoice?.notes || "";
+    return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${invoiceNumber}</title>
+    <style>
+      body{font-family:Arial,sans-serif;color:#111;padding:24px;line-height:1.5}
+      .top{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+      .hd{font-size:24px;font-weight:700;margin:0 0 6px}
+      .muted{color:#475467;font-size:13px}
+      .box{border:1px solid #d0d5dd;border-radius:8px;padding:12px;margin-bottom:14px}
+      table{width:100%;border-collapse:collapse}
+      th,td{padding:10px 8px;border-bottom:1px solid #eaecf0;text-align:left}
+      th{font-size:12px;color:#475467;text-transform:uppercase;letter-spacing:.6px}
+      .total{font-size:20px;font-weight:800;color:#101828;text-align:right;margin-top:10px}
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div>
+        <h1 class="hd">Jaybesin Autos</h1>
+        <div class="muted">Commercial Invoice</div>
+      </div>
+      <div style="text-align:right">
+        <div><strong>Invoice:</strong> ${invoiceNumber}</div>
+        <div><strong>Order:</strong> ${order?.id || "-"}</div>
+        <div><strong>Issue Date:</strong> ${issueDate}</div>
+        <div><strong>Due Date:</strong> ${dueDate || "-"}</div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div><strong>Bill To:</strong> ${order?.customer || "-"}</div>
+      <div class="muted">${order?.email || ""}</div>
+      <div class="muted">${order?.phone || ""}</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Description</th><th style="text-align:right">Amount (USD)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${order?.item || "Vehicle/Service Order"} (${order?.id || "-"})</td>
+          <td style="text-align:right">$${amount.toLocaleString()}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="total">Total: $${amount.toLocaleString()}</div>
+    ${notes ? `<div class="box" style="margin-top:14px"><strong>Notes:</strong><div class="muted">${notes}</div></div>` : ""}
+  </body>
+</html>`;
+  };
+
+  const openInvoiceDoc = (order, idx = 0, printNow = false) => {
+    const invoiceNumber = invoiceNoFor(order, idx);
+    const win = window.open("", "_blank", "noopener,noreferrer");
+    if (!win) { showErr("Could not open invoice window. Please allow popups."); return; }
+    win.document.open();
+    win.document.write(renderInvoiceHtml(order, invoiceNumber));
+    win.document.close();
+    if (printNow) {
+      setTimeout(() => {
+        win.focus();
+        win.print();
+      }, 300);
+    }
+  };
+
+  const createInvoiceForOrder = async (orderId = null) => {
+    const current = orderId
+      ? orders.find((o) => String(o.id) === String(orderId))
+      : orders[0];
+    if (!current) { showErr("No orders available to invoice."); return; }
+
+    const selectedOrderId = orderId || window.prompt("Enter Order ID to invoice:", current.id);
+    if (!selectedOrderId) return;
+    const target = orders.find((o) => String(o.id).toLowerCase() === String(selectedOrderId).trim().toLowerCase());
+    if (!target) { showErr("Order not found for invoice."); return; }
+
+    const idx = orders.findIndex((o) => String(o.id) === String(target.id));
+    const numberDefault = invoiceNoFor(target, idx >= 0 ? idx : 0);
+    const invoiceNumber = window.prompt("Invoice Number", numberDefault);
+    if (!invoiceNumber) return;
+    const amountInput = window.prompt("Invoice Amount (USD)", String(target.invoice?.amount ?? target.amount ?? 0));
+    if (amountInput === null) return;
+    const amount = Number(amountInput || 0);
+    if (!Number.isFinite(amount) || amount < 0) { showErr("Invalid invoice amount."); return; }
+    const dueDefault = target.invoice?.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const dueDate = window.prompt("Due Date (YYYY-MM-DD)", dueDefault);
+    if (!dueDate) return;
+    const notes = window.prompt("Invoice Notes (optional)", target.invoice?.notes || "") ?? "";
+
+    setSaving(true);
+    try {
+      await saveOrder({
+        id: String(target.id),
+        invoice: {
+          number: invoiceNumber.trim(),
+          amount,
+          dueDate: dueDate.trim(),
+          notes: notes.trim(),
+          createdAt: new Date().toISOString(),
+        },
+      });
+      setTab("invoices");
+      openInvoiceDoc({ ...target, invoice: { number: invoiceNumber.trim(), amount, dueDate: dueDate.trim(), notes: notes.trim() } }, idx >= 0 ? idx : 0, false);
+    } catch (e) {
+      showErr(`Invoice save failed: ${e.message}`);
+    }
+    setSaving(false);
+  };
+
+  const sendOrderUpdate = (order) => {
+    const subject = encodeURIComponent(`Order Update - ${order.id}`);
+    const body = encodeURIComponent(
+      `Hello ${order.customer || "Customer"},\n\n` +
+      `Your order (${order.id}) status is currently: ${String(order.status || "").replace(/_/g, " ").toUpperCase()}.\n\n` +
+      `Thank you,\nJaybesin Autos`
+    );
+    if (order?.email) window.open(`mailto:${order.email}?subject=${subject}&body=${body}`);
   };
 
   const openEdit = (v) => { setNewV({ ...v, price: String(v.price || ''), duties: String(v.duties || ''), totalGhana: String(v.totalGhana || '') }); setEditVId(v.id); setShowAddV(true) };
@@ -1805,7 +1939,7 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
                 <div className="track-line" style={{ marginBottom: "14px" }}>
                   {o.tracking.map((step, i) => <div key={i} className="track-step"><div className={`track-dot${step.done ? " done" : step.active ? " active" : ""}`}>{step.done ? "✓" : step.active ? "●" : ""}</div><div style={{ fontSize: "12px", color: step.done ? "var(--text)" : "var(--text2)", fontWeight: 600 }}>{step.step}</div><div style={{ fontSize: "10px", color: "var(--text3)" }}>{step.date}</div></div>)}
                 </div>
-                <div style={{ display: "flex", gap: "8px" }}><button className="btn-sm btn-sm-neon">Generate Invoice</button><button className="btn-sm btn-sm-ghost">Send Update</button></div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}><button className="btn-sm btn-sm-neon" onClick={() => createInvoiceForOrder(o.id)}>Generate Invoice</button><button className="btn-sm btn-sm-ghost" onClick={() => sendOrderUpdate(o)}>Send Update</button></div>
               </div>
             ))}
           </div>
@@ -1829,19 +1963,22 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
         {/* Invoices */}
         {tab === "invoices" && (
           <div>
-            <div className="adm-hd"><div className="adm-pg-title">Invoices & Documents</div><button className="btn-p">+ Create Invoice</button></div>
+            <div className="adm-hd"><div className="adm-pg-title">Invoices & Documents</div><button className="btn-p" onClick={() => createInvoiceForOrder()}>+ Create Invoice</button></div>
             <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>{["Commercial Invoice", "Pro-Forma", "Customs Declaration", "Bill of Lading"].map(d => <button key={d} className="btn-sm btn-sm-ghost">{d}</button>)}</div>
-            <div className="adm-card adm-desktop-only"><table className="adm-table"><thead><tr><th>Invoice #</th><th>Order</th><th>Customer</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead><tbody>{orders.map((o, i) => <tr key={o.id}><td style={{ color: "var(--neon)", fontFamily: "monospace" }}>INV-2024-{String(i + 1).padStart(3, "0")}</td><td style={{ fontSize: "11px" }}>{o.id}</td><td style={{ color: "var(--text)" }}>{o.customer}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(o.amount)}</td><td>{o.date}</td><td><button className="btn-sm btn-sm-neon">PDF</button></td></tr>)}</tbody></table></div>
+            <div className="adm-card adm-desktop-only"><div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Invoice #</th><th>Order</th><th>Customer</th><th>Amount</th><th>Due Date</th><th>Action</th></tr></thead><tbody>{orders.map((o, i) => { const no = invoiceNoFor(o, i); return <tr key={o.id}><td style={{ color: "var(--neon)", fontFamily: "monospace" }}>{no}</td><td style={{ fontSize: "11px" }}>{o.id}</td><td style={{ color: "var(--text)" }}>{o.customer}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(o.invoice?.amount ?? o.amount)}</td><td>{o.invoice?.dueDate || "-"}</td><td style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>{o.invoice ? <><button className="btn-sm btn-sm-neon" onClick={() => openInvoiceDoc(o, i, false)}>View</button><button className="btn-sm btn-sm-ghost" onClick={() => openInvoiceDoc(o, i, true)}>Print</button></> : <button className="btn-sm btn-sm-neon" onClick={() => createInvoiceForOrder(o.id)}>Create</button>}</td></tr>; })}</tbody></table></div></div>
             <div className="adm-mobile-only">
-              {orders.map((o, i) => (
-                <div key={o.id} className="adm-mobile-card">
-                  <div className="adm-mobile-card-hd"><div style={{ fontFamily: "monospace", color: "var(--neon)", fontWeight: 700 }}>INV-2024-{String(i + 1).padStart(3, "0")}</div><div style={{ color: "var(--neon)", fontWeight: 800 }}>{fmtUSD(o.amount)}</div></div>
-                  <div className="adm-mobile-meta">Order: {o.id}</div>
-                  <div className="adm-mobile-meta">Customer: {o.customer}</div>
-                  <div className="adm-mobile-meta">Date: {o.date}</div>
-                  <div className="adm-mobile-actions"><button className="btn-sm btn-sm-neon">Download PDF</button></div>
-                </div>
-              ))}
+              {orders.map((o, i) => {
+                const no = invoiceNoFor(o, i);
+                return (
+                  <div key={o.id} className="adm-mobile-card">
+                    <div className="adm-mobile-card-hd"><div style={{ fontFamily: "monospace", color: "var(--neon)", fontWeight: 700 }}>{no}</div><div style={{ color: "var(--neon)", fontWeight: 800 }}>{fmtUSD(o.invoice?.amount ?? o.amount)}</div></div>
+                    <div className="adm-mobile-meta">Order: {o.id}</div>
+                    <div className="adm-mobile-meta">Customer: {o.customer}</div>
+                    <div className="adm-mobile-meta">Due: {o.invoice?.dueDate || "-"}</div>
+                    <div className="adm-mobile-actions">{o.invoice ? <><button className="btn-sm btn-sm-neon" onClick={() => openInvoiceDoc(o, i, false)}>View</button><button className="btn-sm btn-sm-ghost" onClick={() => openInvoiceDoc(o, i, true)}>Print</button></> : <button className="btn-sm btn-sm-neon" onClick={() => createInvoiceForOrder(o.id)}>Create</button>}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
