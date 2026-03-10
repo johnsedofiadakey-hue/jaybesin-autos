@@ -369,6 +369,12 @@ const GlobalStyles = () => (
     .adm-table td{padding:12px 14px;font-size:12px;border-bottom:1px solid color-mix(in srgb,var(--border) 40%,transparent);color:var(--text2)}
     .adm-table tr:hover td{background:var(--bg2)}
     .adm-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:22px;margin-bottom:16px}
+    .adm-mobile-only{display:none}
+    .adm-desktop-only{display:block}
+    .adm-mobile-card{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px}
+    .adm-mobile-card-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+    .adm-mobile-meta{font-size:11px;color:var(--text2);line-height:1.55}
+    .adm-mobile-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
     .adm-split{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:14px}
     .adm-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -523,6 +529,8 @@ const GlobalStyles = () => (
       .adm-mob-btn.act{color:var(--neon);border-color:color-mix(in srgb,var(--neon) 40%,transparent);background:color-mix(in srgb,var(--neon) 12%,transparent)}
       .adm-mob-btn-ico{font-size:19px;line-height:1}
       .adm-main{padding:14px 14px 90px!important;margin-left:0!important}
+      .adm-desktop-only{display:none!important}
+      .adm-mobile-only{display:grid!important;gap:10px}
       .adm-hd{flex-wrap:wrap;gap:10px}
       .adm-pg-title{font-size:18px}
       .dash-grid{grid-template-columns:1fr 1fr!important}
@@ -1688,7 +1696,7 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
         {tab === "vehicles" && (
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Vehicles ({vehicles.length})</div><button className="btn-p" onClick={() => { setNewV(blankV); setEditVId(null); setShowAddV(true) }}>+ Add Vehicle</button></div>
-            <div className="adm-card">
+            <div className="adm-card adm-desktop-only">
               <div className="adm-table-wrap">
                 <table className="adm-table">
                   <thead><tr><th>Vehicle</th><th>Type</th><th>Fuel</th><th>FOB $</th><th>Show Price</th><th>Status</th><th>Actions</th></tr></thead>
@@ -1706,6 +1714,27 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
                   </tbody>
                 </table>
               </div>
+            </div>
+            <div className="adm-mobile-only">
+              {vehicles.map(v => (
+                <div key={v.id} className="adm-mobile-card">
+                  <div className="adm-mobile-card-hd">
+                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                      {v.images && v.images.length > 0 ? <img src={v.images[0]} style={{ width: 54, height: 42, objectFit: "cover", borderRadius: 6 }} alt="" /> : <div style={{ width: 54, height: 42, borderRadius: 6, background: "var(--bg4)", display: "grid", placeItems: "center" }}>{v.emoji}</div>}
+                      <div>
+                        <div style={{ fontWeight: 700, color: "var(--text)" }}>{v.brand} {v.model}</div>
+                        <div className="adm-mobile-meta">{v.year} · {v.type} · {v.fuel}</div>
+                      </div>
+                    </div>
+                    <div style={{ color: "var(--neon)", fontWeight: 800 }}>{fmtUSD(v.price)}</div>
+                  </div>
+                  <div className="adm-mobile-meta">Status: {v.availability === "in_stock" ? "In Stock" : "Pre-Order"} · Show Price: {v.showPrice ? "On" : "Off"}</div>
+                  <div className="adm-mobile-actions">
+                    <button className="btn-sm btn-sm-neon" onClick={() => openEdit(v)}>Edit</button>
+                    <button className="btn-sm btn-sm-red" onClick={() => deleteV(v.id)}>Delete</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -1731,7 +1760,17 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
         {tab === "charging" && (
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Charging Stations</div><button className="btn-p" onClick={() => setShowAddC(true)}>+ Add Station</button></div>
-            <div className="adm-card"><div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Name</th><th>Brand</th><th>Type</th><th>Power</th><th>Price</th><th>Install</th><th>Act</th></tr></thead><tbody>{charging.map(c => <tr key={c.id}><td>{c.emoji} <strong style={{ color: "var(--text)" }}>{c.name}</strong></td><td>{c.brand}</td><td><span className="tag tag-2">{c.type}</span></td><td>{c.power}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(c.price)}</td><td>{fmtUSD(c.installation)}</td><td><button className="btn-sm btn-sm-red" onClick={() => removeCharger(c.id)}>Del</button></td></tr>)}</tbody></table></div></div>
+            <div className="adm-card adm-desktop-only"><div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Name</th><th>Brand</th><th>Type</th><th>Power</th><th>Price</th><th>Install</th><th>Act</th></tr></thead><tbody>{charging.map(c => <tr key={c.id}><td>{c.emoji} <strong style={{ color: "var(--text)" }}>{c.name}</strong></td><td>{c.brand}</td><td><span className="tag tag-2">{c.type}</span></td><td>{c.power}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(c.price)}</td><td>{fmtUSD(c.installation)}</td><td><button className="btn-sm btn-sm-red" onClick={() => removeCharger(c.id)}>Del</button></td></tr>)}</tbody></table></div></div>
+            <div className="adm-mobile-only">
+              {charging.map(c => (
+                <div key={c.id} className="adm-mobile-card">
+                  <div className="adm-mobile-card-hd"><div style={{ fontWeight: 700, color: "var(--text)" }}>{c.emoji} {c.name}</div><div style={{ color: "var(--neon)", fontWeight: 800 }}>{fmtUSD(c.price)}</div></div>
+                  <div className="adm-mobile-meta">{c.brand} · {c.type} · {c.power}</div>
+                  <div className="adm-mobile-meta">Install: {fmtUSD(c.installation)}</div>
+                  <div className="adm-mobile-actions"><button className="btn-sm btn-sm-red" onClick={() => removeCharger(c.id)}>Delete</button></div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1739,7 +1778,17 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
         {tab === "parts" && (
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Spare Parts</div><button className="btn-p" onClick={() => setShowAddP(true)}>+ Add Part</button></div>
-            <div className="adm-card"><div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Part</th><th>Category</th><th>Compatible</th><th>Price</th><th>Act</th></tr></thead><tbody>{parts.map(p => <tr key={p.id}><td>{p.emoji} <strong style={{ color: "var(--text)" }}>{p.name}</strong></td><td>{p.category}</td><td style={{ fontSize: "11px" }}>{p.compatible}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(p.price)}</td><td><button className="btn-sm btn-sm-red" onClick={() => removePart(p.id)}>Del</button></td></tr>)}</tbody></table></div></div>
+            <div className="adm-card adm-desktop-only"><div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Part</th><th>Category</th><th>Compatible</th><th>Price</th><th>Act</th></tr></thead><tbody>{parts.map(p => <tr key={p.id}><td>{p.emoji} <strong style={{ color: "var(--text)" }}>{p.name}</strong></td><td>{p.category}</td><td style={{ fontSize: "11px" }}>{p.compatible}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(p.price)}</td><td><button className="btn-sm btn-sm-red" onClick={() => removePart(p.id)}>Del</button></td></tr>)}</tbody></table></div></div>
+            <div className="adm-mobile-only">
+              {parts.map(p => (
+                <div key={p.id} className="adm-mobile-card">
+                  <div className="adm-mobile-card-hd"><div style={{ fontWeight: 700, color: "var(--text)" }}>{p.emoji} {p.name}</div><div style={{ color: "var(--neon)", fontWeight: 800 }}>{fmtUSD(p.price)}</div></div>
+                  <div className="adm-mobile-meta">Category: {p.category}</div>
+                  <div className="adm-mobile-meta">Compatible: {p.compatible}</div>
+                  <div className="adm-mobile-actions"><button className="btn-sm btn-sm-red" onClick={() => removePart(p.id)}>Delete</button></div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1782,7 +1831,18 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Invoices & Documents</div><button className="btn-p">+ Create Invoice</button></div>
             <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>{["Commercial Invoice", "Pro-Forma", "Customs Declaration", "Bill of Lading"].map(d => <button key={d} className="btn-sm btn-sm-ghost">{d}</button>)}</div>
-            <div className="adm-card"><table className="adm-table"><thead><tr><th>Invoice #</th><th>Order</th><th>Customer</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead><tbody>{orders.map((o, i) => <tr key={o.id}><td style={{ color: "var(--neon)", fontFamily: "monospace" }}>INV-2024-{String(i + 1).padStart(3, "0")}</td><td style={{ fontSize: "11px" }}>{o.id}</td><td style={{ color: "var(--text)" }}>{o.customer}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(o.amount)}</td><td>{o.date}</td><td><button className="btn-sm btn-sm-neon">PDF</button></td></tr>)}</tbody></table></div>
+            <div className="adm-card adm-desktop-only"><table className="adm-table"><thead><tr><th>Invoice #</th><th>Order</th><th>Customer</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead><tbody>{orders.map((o, i) => <tr key={o.id}><td style={{ color: "var(--neon)", fontFamily: "monospace" }}>INV-2024-{String(i + 1).padStart(3, "0")}</td><td style={{ fontSize: "11px" }}>{o.id}</td><td style={{ color: "var(--text)" }}>{o.customer}</td><td style={{ color: "var(--neon)", fontWeight: 700 }}>{fmtUSD(o.amount)}</td><td>{o.date}</td><td><button className="btn-sm btn-sm-neon">PDF</button></td></tr>)}</tbody></table></div>
+            <div className="adm-mobile-only">
+              {orders.map((o, i) => (
+                <div key={o.id} className="adm-mobile-card">
+                  <div className="adm-mobile-card-hd"><div style={{ fontFamily: "monospace", color: "var(--neon)", fontWeight: 700 }}>INV-2024-{String(i + 1).padStart(3, "0")}</div><div style={{ color: "var(--neon)", fontWeight: 800 }}>{fmtUSD(o.amount)}</div></div>
+                  <div className="adm-mobile-meta">Order: {o.id}</div>
+                  <div className="adm-mobile-meta">Customer: {o.customer}</div>
+                  <div className="adm-mobile-meta">Date: {o.date}</div>
+                  <div className="adm-mobile-actions"><button className="btn-sm btn-sm-neon">Download PDF</button></div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
