@@ -10,7 +10,7 @@ import {
   getSettings, saveSettings as fsaveSettings, uploadImage,
   seedFirestore
 } from "./firestore";
-import { MarketplaceBrowsePage, CarDetailPageMarket, MarketplaceSimplePage, MarketplaceAdminTab } from "./marketplace";
+import { MarketplaceBrowsePage, CarDetailPageMarket, MarketplaceSimplePage, MarketplaceAdminTab, MarketplaceAccountPage } from "./marketplace";
 import { MarketplaceMobileNav } from "./components/marketplace/HomepageLayout";
 
 // ─────────────────────────────────────────────────────────────────
@@ -630,6 +630,13 @@ const SETTINGS0 = {
   address: "Accra, Greater Accra, Ghana", logo: null,
   showPricesGlobal: true, ghsRate: 16.2,
   showGhsPrice: true,
+  importTimeline: [
+    { step: "Purchase Confirmation", days: 2 },
+    { step: "Inspection & Report", days: 2 },
+    { step: "Shipping to Ghana", days: 35 },
+    { step: "Port Processing", days: 5 },
+  ],
+  importLeadTimeDays: 44,
   annBarText: "🚗 Now taking Pre-Orders for 2025 — Limited slots available. ", annBarLink: "", annBarOn: true,
   heroSlides: [{ id: 1, image: null, label: "Welcome to Jaybesin Autos" }],
   theme: DEFAULT_THEME,
@@ -1706,7 +1713,16 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
         {tab === "marketplace" && (
           <div>
             <div className="adm-hd"><div className="adm-pg-title">Marketplace Cars ({cars.length})</div></div>
-            <MarketplaceAdminTab cars={cars} onSaveCar={onSaveCar} saving={saving} />
+            <MarketplaceAdminTab
+              cars={cars}
+              onSaveCar={onSaveCar}
+              saving={saving}
+              importTimeline={editS.importTimeline}
+              importLeadTimeDays={editS.importLeadTimeDays}
+              onImportTimelineChange={(next) => setEditS((prev) => ({ ...prev, importTimeline: next }))}
+              onImportLeadTimeChange={(next) => setEditS((prev) => ({ ...prev, importLeadTimeDays: next }))}
+              onSaveTimeline={handleSaveSettings}
+            />
           </div>
         )}
 
@@ -2058,16 +2074,16 @@ export default function App() {
   const renderPage = () => {
     if (page === "home") return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} hero />;
     if (page === "browse") return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} />;
-    if (page === "import") return <MarketplaceSimplePage title="Import From China" subtitle="Tell us your preferred brand, model, and budget. We handle sourcing, inspection, shipping, insurance, and Ghana clearance with transparent landed cost estimates." ctaLabel="Start Import Request" onCta={() => go("contact")} onBack={() => go("home")} />;
+    if (page === "import") return <MarketplaceSimplePage title="Import From China" subtitle="Tell us your preferred brand, model, and budget. We handle sourcing, inspection/report, and shipping to Ghana with transparent FOB pricing." ctaLabel="Start Import Request" onCta={() => go("account")} onBack={() => go("home")} />;
     if (page === "sell") return <MarketplaceSimplePage title="Sell Car" subtitle="List your car with Jaybesin Autos and reach verified buyers. Include full service history and receive qualified leads." ctaLabel="List My Car" onCta={() => go("contact")} onBack={() => go("home")} />;
     if (page === "deals") return <MarketplaceBrowsePage cars={marketplaceCars.filter((c) => (c.tags || []).includes("hot") || (c.tags || []).includes("clearance"))} setPage={go} />;
-    if (page === "account") return <MarketplaceSimplePage title="Account" subtitle="Track your reservations, import requests, and deal alerts. Sign-in integration can be connected to Firebase Auth user profiles." ctaLabel="Browse Cars" onCta={() => go("browse")} onBack={() => go("home")} />;
+    if (page === "account") return <MarketplaceAccountPage settings={settings} setPage={go} />;
     if (page === "garage") return <GaragePage vehicles={vehicles} setPage={go} settings={settings} />;
     if (page === "charging") return <ChargingPage charging={charging} />;
     if (page === "parts") return <PartsPage parts={parts} />;
     if (page === "track") return <TrackingPage orders={orders} />;
     if (page === "contact" || page === "services") return <ContactPage settings={settings} />;
-    if (page.startsWith("car-")) { const id = page.replace("car-", ""); return <CarDetailPageMarket car={marketplaceCars.find((x) => String(x.id) === String(id))} setPage={go} settings={settings} />; }
+    if (page.startsWith("car-")) { const id = page.replace("car-", ""); return <CarDetailPageMarket car={marketplaceCars.find((x) => String(x.id) === String(id))} cars={marketplaceCars} setPage={go} settings={settings} />; }
     if (page.startsWith("vehicle-")) { const id = page.replace("vehicle-", ""); return <VehicleDetailPage vehicle={vehicles.find((x) => String(x.id) === String(id) || Number(x.id) === Number(id))} setPage={go} settings={settings} />; }
     return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} hero />;
   };
