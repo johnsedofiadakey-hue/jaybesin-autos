@@ -517,10 +517,11 @@ const GlobalStyles = () => (
       input,select,textarea{font-size:16px!important}
       .inp{min-height:44px;padding:12px 14px}
       /* admin */
-      .adm-mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding:6px 0;padding-bottom:calc(6px + env(safe-area-inset-bottom));gap:0}
-      .adm-mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text2);font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:5px 2px;transition:color .2s;min-width:0;-webkit-tap-highlight-color:transparent}
-      .adm-mob-btn.act{color:var(--neon)}
-      .adm-mob-btn-ico{font-size:21px;line-height:1}
+      .adm-mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom));gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+      .adm-mobile-nav::-webkit-scrollbar{display:none}
+      .adm-mob-btn{flex:0 0 auto;min-width:78px;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;cursor:pointer;color:var(--text2);font-size:10px;font-weight:600;letter-spacing:.2px;padding:7px 8px;transition:all .2s;-webkit-tap-highlight-color:transparent;scroll-snap-align:start}
+      .adm-mob-btn.act{color:var(--neon);border-color:color-mix(in srgb,var(--neon) 40%,transparent);background:color-mix(in srgb,var(--neon) 12%,transparent)}
+      .adm-mob-btn-ico{font-size:19px;line-height:1}
       .adm-main{padding:14px 14px 90px!important;margin-left:0!important}
       .adm-hd{flex-wrap:wrap;gap:10px}
       .adm-pg-title{font-size:18px}
@@ -562,7 +563,7 @@ const GlobalStyles = () => (
 
       /* ── Admin form heading rows ── */
       .adm-hd{flex-wrap:wrap;row-gap:10px}
-      .adm-hd>.btn-p{width:100%;justify-content:center}
+      .adm-hd>.btn-p,.adm-hd>.btn-sm,.adm-hd>div>.btn-sm{width:100%;justify-content:center}
 
       /* ── Admin: Make the add/edit vehicle modal fields full width ── */
       .mo-body .frow{grid-template-columns:1fr}
@@ -1418,15 +1419,15 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
   useEffect(() => setEditS(settings), [settings]);
 
   const navItems = [
-    { id: "dashboard", Icon: LayoutDashboard, lbl: "Dashboard" },
-    { id: "vehicles", Icon: Car, lbl: "Legacy Vehicles" },
-    { id: "marketplace", Icon: Globe, lbl: "Marketplace Cars" },
-    { id: "charging", Icon: Zap, lbl: "Charging Stations" },
-    { id: "parts", Icon: Wrench, lbl: "Spare Parts" },
-    { id: "orders", Icon: Package, lbl: "Orders" },
-    { id: "inquiries", Icon: MessageCircle, lbl: "Inquiries" },
-    { id: "invoices", Icon: FileText, lbl: "Invoices" },
-    { id: "settings", Icon: Settings, lbl: "Settings" },
+    { id: "dashboard", Icon: LayoutDashboard, lbl: "Dashboard", mob: "Home" },
+    { id: "vehicles", Icon: Car, lbl: "Legacy Vehicles", mob: "Vehicles" },
+    { id: "marketplace", Icon: Globe, lbl: "Marketplace Cars", mob: "Market" },
+    { id: "charging", Icon: Zap, lbl: "Charging Stations", mob: "Charging" },
+    { id: "parts", Icon: Wrench, lbl: "Spare Parts", mob: "Parts" },
+    { id: "orders", Icon: Package, lbl: "Orders", mob: "Orders" },
+    { id: "inquiries", Icon: MessageCircle, lbl: "Inquiries", mob: "Leads" },
+    { id: "invoices", Icon: FileText, lbl: "Invoices", mob: "Docs" },
+    { id: "settings", Icon: Settings, lbl: "Settings", mob: "Settings" },
   ];
 
   const [saving, setSaving] = useState(false);
@@ -1587,7 +1588,7 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
         {navItems.map(n => (
           <button key={n.id} className={`adm-mob-btn${tab === n.id ? ' act' : ''}`} onClick={() => setTab(n.id)}>
             <n.Icon size={22} strokeWidth={1.75} className="adm-mob-btn-ico" />
-            <span>{n.lbl.split(' ')[0]}</span>
+            <span>{n.mob || n.lbl}</span>
           </button>
         ))}
         <button className="adm-mob-btn" onClick={onLogout} style={{ color: '#FF4A5A' }}>
@@ -1869,7 +1870,7 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
             </div>
 
             {/* ── BRAND ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+            <div className="settings-2col" style={{ gap: "14px", marginBottom: "14px" }}>
               <div className="adm-card">
                 <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "18px" }}>🏢 Brand Identity</div>
                 <div className="fg"><label className="lbl">Company Name</label><input className="inp" value={editS.companyName} onChange={e => setEditS({ ...editS, companyName: e.target.value })} /></div>
@@ -1883,7 +1884,7 @@ function AdminPanel({ vehicles, setVehicles, cars, onSaveCar, charging, setCharg
             </div>
 
             {/* ── DISPLAY SETTINGS ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+            <div className="settings-2col" style={{ gap: "14px", marginBottom: "14px" }}>
               <div className="adm-card">
                 <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "15px", marginBottom: "18px", display: "flex", alignItems: "center", gap: 8 }}><DollarSign size={16} style={{ color: "var(--neon)" }} />Pricing Display</div>
                 <div style={{ marginBottom: "16px" }}><Tgl on={editS.showPricesGlobal} onChange={() => setEditS({ ...editS, showPricesGlobal: !editS.showPricesGlobal })} label="Show prices globally" /><div style={{ fontSize: "11px", color: "var(--text3)", marginTop: "6px" }}>When off, all prices show "Price on Request". Override per vehicle in the Vehicles tab.</div></div>
