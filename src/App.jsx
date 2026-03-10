@@ -10,7 +10,8 @@ import {
   getSettings, saveSettings as fsaveSettings, uploadImage,
   seedFirestore
 } from "./firestore";
-import { MarketplaceBrowsePage, CarDetailPageMarket, MarketplaceSimplePage, MarketplaceAdminTab, MarketplaceHighlights } from "./marketplace";
+import { MarketplaceBrowsePage, CarDetailPageMarket, MarketplaceSimplePage, MarketplaceAdminTab } from "./marketplace";
+import { MarketplaceMobileNav } from "./components/marketplace/HomepageLayout";
 
 // ─────────────────────────────────────────────────────────────────
 //  THEME SYSTEM
@@ -91,13 +92,13 @@ function ThemeInjector({ theme: t }) {
 // ─────────────────────────────────────────────────────────────────
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     *,*::before,*::after{box-sizing:border-box}
     html,body{margin:0;padding:0;overflow-x:hidden;overscroll-behavior-x:none;-webkit-overflow-scrolling:touch}
     *,.cursor-el{box-sizing:border-box}
     @media(pointer:coarse){.cursor-el{display:none!important;pointer-events:none!important}}
     html{scroll-behavior:smooth}
-    body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;overflow-x:hidden;cursor:none}
+    body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans','Outfit',sans-serif;font-weight:400;overflow-x:hidden;cursor:none}
     ::-webkit-scrollbar{width:3px}
     ::-webkit-scrollbar-track{background:var(--bg)}
     ::-webkit-scrollbar-thumb{background:var(--neon);border-radius:2px}
@@ -817,7 +818,7 @@ function HeroSlider({ slides = [], onExplore, onQuote }) {
 }
 
 // ─── NAV ──────────────────────────────────────────────────────────
-function Nav({ setPage, settings, annOn }) {
+function Nav({ setPage, settings, annOn, page }) {
   const [sc, setSc] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   useEffect(() => {
@@ -851,7 +852,7 @@ function Nav({ setPage, settings, annOn }) {
         </div>
         <ul className="nav-links">
           {navLinks.map(([l, p]) => (
-            <li key={l}><a href="#" onClick={e => { e.preventDefault(); go(p) }}>{l}</a></li>
+            <li key={l}><a href="#" style={{ color: page === p ? "var(--neon)" : undefined }} onClick={e => { e.preventDefault(); go(p) }}>{l}</a></li>
           ))}
         </ul>
         <button className="btn-p" onClick={() => go("browse")} style={{ padding: "9px 22px", fontSize: "11px" }}>Browse Cars</button>
@@ -2044,7 +2045,7 @@ export default function App() {
   };
 
   const renderPage = () => {
-    if (page === "home") return <div style={{ display: "grid", gap: 10 }}><MarketplaceBrowsePage cars={marketplaceCars} setPage={go} hero /><div style={{ paddingInline: 18, maxWidth: 1400, margin: "0 auto" }}><MarketplaceHighlights /></div></div>;
+    if (page === "home") return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} hero />;
     if (page === "browse") return <MarketplaceBrowsePage cars={marketplaceCars} setPage={go} />;
     if (page === "import") return <MarketplaceSimplePage title="Import From China" subtitle="Tell us your preferred brand, model, and budget. We handle sourcing, inspection, shipping, insurance, and Ghana clearance with transparent landed cost estimates." ctaLabel="Start Import Request" onCta={() => go("contact")} />;
     if (page === "sell") return <MarketplaceSimplePage title="Sell Car" subtitle="List your car with Jaybesin Autos and reach verified buyers. Include full service history and receive qualified leads." ctaLabel="List My Car" onCta={() => go("contact")} />;
@@ -2091,6 +2092,8 @@ export default function App() {
   );
 
   const annOn = settings.annBarOn && annVisible;
+  const marketplaceNavPages = ["home", "browse", "import", "sell", "deals", "account"];
+  const isMarketplaceSurface = marketplaceNavPages.includes(page) || page.startsWith("car-");
 
   return (
     <>
@@ -2099,10 +2102,11 @@ export default function App() {
       <Cursor />
       <div className="grain" />
       <AnnBar settings={{ ...settings, annBarOn: annOn }} setPage={go} onClose={() => setAnnVisible(false)} />
-      <Nav setPage={go} settings={settings} annOn={annOn} />
+      <Nav setPage={go} settings={settings} annOn={annOn} page={page} />
       <main style={{ paddingTop: annOn ? '98px' : '60px' }}>{renderPage()}</main>
-      <Footer setPage={go} onAdminClick={goAdmin} settings={settings} />
-      <WAFloat whatsapp={settings.whatsapp} />
+      {isMarketplaceSurface && <MarketplaceMobileNav setPage={go} activePage={page} />}
+      {!isMarketplaceSurface && <Footer setPage={go} onAdminClick={goAdmin} settings={settings} />}
+      {!isMarketplaceSurface && <WAFloat whatsapp={settings.whatsapp} />}
     </>
   );
 }

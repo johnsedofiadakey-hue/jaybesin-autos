@@ -28,7 +28,7 @@ function CarFeedCard({ car, setPage, usd }) {
   );
 }
 
-function BottomNav({ setPage }) {
+export function MarketplaceMobileNav({ setPage, activePage }) {
   const items = [
     { label: "Home", page: "home", Icon: Home },
     { label: "Buy", page: "browse", Icon: CarFront },
@@ -36,14 +36,18 @@ function BottomNav({ setPage }) {
     { label: "Deals", page: "deals", Icon: Flame },
     { label: "Account", page: "account", Icon: UserCircle2 },
   ];
+
   return (
-    <div className="mk-bottom-nav">
-      {items.map(({ label, page, Icon }) => (
-        <button key={label} onClick={() => setPage(page)} className="mk-bottom-btn">
-          <Icon size={18} />
-          <span>{label}</span>
-        </button>
-      ))}
+    <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, background: "#fff", borderTop: "1px solid #eaecf0", display: "grid", gridTemplateColumns: "repeat(5,1fr)", zIndex: 80, padding: "6px 4px calc(6px + env(safe-area-inset-bottom))" }}>
+      {items.map(({ label, page, Icon }) => {
+        const active = activePage === page || (page === "browse" && String(activePage || "").startsWith("car-"));
+        return (
+          <button key={label} onClick={() => setPage(page)} style={{ border: 0, background: "transparent", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: active ? "#2563eb" : "#667085", fontSize: 11, fontWeight: active ? 700 : 500 }}>
+            <Icon size={18} />
+            <span>{label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -122,10 +126,8 @@ export function MarketplaceHomepageLayout({
         </div>
       </div>
 
-      <BottomNav setPage={setPage} />
-
       <style>{`
-        .mk-wrap{background:#f2f4f7;min-height:100vh;padding-top:${hero ? 86 : 96}px;padding-bottom:84px}
+        .mk-wrap{background:#f2f4f7;min-height:100vh;padding-top:${hero ? 86 : 96}px;padding-bottom:96px}
         .mk-top-tabs{display:flex;gap:14px;overflow-x:auto;padding:0 12px 8px;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:58px;z-index:25}
         .mk-top-tab{border:0;background:transparent;padding:12px 0;font-size:16px;color:#344054;font-weight:500;white-space:nowrap}
         .mk-top-tab.act{color:#101828;font-weight:800;position:relative}
@@ -137,13 +139,10 @@ export function MarketplaceHomepageLayout({
         .mk-filter-btn,.mk-sort{height:40px;border:1px solid #eaecf0;background:#fff;border-radius:10px;padding:0 10px;font-size:12px;color:#344054}
         .mk-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
         .mk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-        .mk-bottom-nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eaecf0;display:grid;grid-template-columns:repeat(5,1fr);z-index:40;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
-        .mk-bottom-btn{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;color:#667085;font-size:11px}
         @media (min-width: 1024px){
           .mk-content{max-width:1280px;margin:0 auto}
           .mk-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
           .mk-filters{grid-template-columns:repeat(6,minmax(0,1fr))}
-          .mk-bottom-nav{max-width:560px;left:50%;transform:translateX(-50%);border:1px solid #eaecf0;border-bottom:0;border-top-left-radius:16px;border-top-right-radius:16px}
         }
       `}</style>
     </div>
