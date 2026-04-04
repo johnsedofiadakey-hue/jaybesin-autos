@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper: Is the user the authenticated admin?
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@jaybesin.com';
+    }
+
+    // Publicly readable for browsing car photos; only Admin can upload/delete.
+    match /cars/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Publicly readable for other resources; only Admin can upload/delete.
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

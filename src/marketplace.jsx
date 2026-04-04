@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { ShieldCheck, Flame, Sparkles, MessageCircle, Phone, Clock3, CheckCircle2 } from "lucide-react";
 import { addInquiry, saveOrder } from "./firestore";
 import { MarketplaceHomepageLayout } from "./components/marketplace/HomepageLayout";
+import { DynamicHead } from "./components/DynamicHead";
+import { Share2, Link2, LucideShare } from "lucide-react";
 
 const QUICK_TABS = ["All Cars", "SUV", "Sedan", "Pickup", "Truck", "Electric", "Cheap Deals", "New Arrivals", "Verified Cars"];
 const SORTS = {
@@ -96,7 +98,7 @@ export const normalizeCar = (car = {}) => {
   };
 };
 
-export function MarketplaceBrowsePage({ cars, setPage, hero = false }) {
+export function MarketplaceBrowsePage({ cars, setPage, hero = false, settings = {} }) {
   const carRows = useMemo(() => cars.map(normalizeCar), [cars]);
   const [quickTab, setQuickTab] = useState("All Cars");
   const [sortBy, setSortBy] = useState("newest");
@@ -167,6 +169,7 @@ export function MarketplaceBrowsePage({ cars, setPage, hero = false }) {
       pageSize={PAGE_SIZE}
       setPage={setPage}
       usd={usd}
+      settings={settings}
     />
   );
 }
@@ -193,6 +196,17 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
     ["Seats", row.seats || "N/A"],
     ["Engine", row.engine || "N/A"],
   ];
+
+  const shareOnWhatsApp = () => {
+    const text = `Check out this ${row.brand} ${row.model} (${row.year}) on Jaybesin Autos: ${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setFeedback({ type: "success", message: "Link copied to clipboard!" });
+    setTimeout(() => setFeedback({ type: "", message: "" }), 3000);
+  };
 
   const suggestions = useMemo(() => {
     const all = (cars || []).map(normalizeCar).filter((c) => c.id !== row.id);
@@ -276,10 +290,31 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
   };
 
   return (
-    <div style={{ paddingTop: 72, maxWidth: 1200, margin: "0 auto", paddingInline: 14, paddingBottom: 96 }}>
-      <button className="btn-sm btn-sm-ghost" onClick={() => setPage("browse")}>← Back</button>
+    <div className="cd-page" style={{ paddingTop: 72, maxWidth: 1200, margin: "0 auto", paddingInline: 14, paddingBottom: 96 }}>
+      <DynamicHead 
+        title={`${row.year} ${row.brand} ${row.model} - ${usd(row.purchaseCost)}`}
+        description={`Import this ${row.year} ${row.brand} ${row.model} from China to Ghana. Full inspection report and shipping included.`}
+        image={row.images?.[0]}
+        url={window.location.href}
+      />
+      
+      {/* Sticky Mobile CTA */}
+      <div className="sticky-cta mobile-only">
+        <button className="btn-wa-full" onClick={() => sendLeadToWhatsApp(settings.whatsapp, `I'm interested in the ${row.brand} ${row.model} (${row.year}). Reference: ${row.id}`)}>
+          <MessageCircle size={20} /> Inquiry via WhatsApp
+        </button>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <button className="btn-sm btn-sm-ghost" onClick={() => setPage("browse")}>← Back</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn-sm btn-sm-ghost" onClick={shareOnWhatsApp} title="Share to WhatsApp"><Share2 size={16} /> <span className="desktop-only">Share</span></button>
+          <button className="btn-sm btn-sm-ghost" onClick={copyLink} title="Copy Link"><Link2 size={16} /> <span className="desktop-only">Copy</span></button>
+        </div>
+      </div>
+
       <div className="mk-detail-grid" style={{ marginTop: 8 }}>
-        <section style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 10 }}>
+        <section style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 10 }}>
           <div style={{ aspectRatio: "4/3", borderRadius: 10, overflow: "hidden", background: "#f2f4f7", marginBottom: 8 }}>{row.images[active] ? <img src={row.images[active]} alt={row.model} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(86px,1fr))", gap: 6 }}>
             {(row.images.length ? row.images : [""]).map((img, i) => <button key={i} onClick={() => setActive(i)} style={{ border: active === i ? "1px solid #f97316" : "1px solid #eaecf0", borderRadius: 8, overflow: "hidden", aspectRatio: "4/3", background: "#f9fafb" }}>{img ? <img src={img} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}</button>)}
@@ -287,10 +322,20 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
         </section>
 
         <section style={{ display: "grid", gap: 10 }}>
-          <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: "#101828" }}>{row.brand} {row.model}</div>
+          <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 12 }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text, #101828)" }}>{row.brand} {row.model}</div>
             <div style={{ color: "#667085", fontSize: 13 }}>{row.year} · {row.mileage.toLocaleString()} km · {row.locationChina}</div>
           </div>
+
+          {row.documents.length > 0 && (
+            <div style={{ background: "linear-gradient(135deg, #17b26a 0%, #079455 100%)", borderRadius: 12, padding: "12px 16px", color: "#fff", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 12px rgba(23,178,106,0.2)" }}>
+              <div style={{ background: "rgba(255,255,255,0.2)", padding: 8, borderRadius: "50%" }}><ShieldCheck size={20} /></div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 14 }}>Verified Inspection Report</div>
+                <div style={{ fontSize: 12, opacity: 0.9 }}>This vehicle has been fully inspected at source.</div>
+              </div>
+            </div>
+          )}
 
           {feedback.message && (
             <div style={{ background: feedback.type === "ok" ? "#ecfdf3" : "#fef3f2", color: feedback.type === "ok" ? "#027a48" : "#b42318", border: `1px solid ${feedback.type === "ok" ? "#abefc6" : "#fecdca"}`, borderRadius: 10, padding: "10px 12px", fontSize: 13 }}>
@@ -298,22 +343,34 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
             </div>
           )}
 
-          <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 12 }}>
-            <div style={{ fontWeight: 800, marginBottom: 6 }}>Cost Breakdown</div>
-            {[ ["Vehicle Price (FOB)", row.priceChina], ["Inspection & Report", row.inspectionFee], ["Shipping to Ghana", row.shippingFee] ].map(([l, v]) => (
-              <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: "#667085" }}>{l}</span><strong>{usd(v)}</strong></div>
-            ))}
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, paddingTop: 6, borderTop: "1px solid #eaecf0", color: "#f97316", fontWeight: 800 }}><span>Total Purchase Cost</span><span>{usd(row.purchaseCost)}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 12 }}><span style={{ color: "#667085" }}>Estimated Duty & Clearance</span><span>{usd(row.clearingEstimate)}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 12 }}><span style={{ color: "#667085" }}>Estimated Landed (guide)</span><strong>{usd(row.estimatedLandedCost)}</strong></div>
-            <div style={{ marginTop: 6, fontSize: 11, color: "#667085" }}>Duty and clearance are estimates only and not part of Jaybesin purchase pricing.</div>
+          <div style={{ background: "#101828", border: "1px solid #1d2939", borderRadius: 12, padding: 16, color: "#fff" }}>
+            <div style={{ fontWeight: 800, marginBottom: 12, fontSize: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Financial Transparency</span>
+              <span style={{ fontSize: 10, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4 }}>USD</span>
+            </div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {[ ["Vehicle Price (FOB)", row.priceChina], ["Inspection & Report", row.inspectionFee], ["Shipping to Ghana", row.shippingFee] ].map(([l, v]) => (
+                <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: "#98a2b3" }}>{l}</span><span style={{ fontWeight: 600 }}>{usd(v)}</span></div>
+              ))}
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                <span style={{ fontWeight: 800, color: "#f97316" }}>Total Purchase Cost</span>
+                <span style={{ fontWeight: 800, fontSize: 20, color: "#f97316" }}>{usd(row.purchaseCost)}</span>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 10, marginTop: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}><span style={{ color: "#98a2b3" }}>Est. Duty & Clearance</span><span style={{ fontWeight: 600 }}>{usd(row.clearingEstimate)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}><span style={{ color: "#fff", fontWeight: 700 }}>Est. Total Landed</span><span style={{ fontWeight: 800, color: "#fff" }}>{usd(row.estimatedLandedCost)}*</span></div>
+              </div>
+              <div style={{ fontSize: 10, color: "#667085", lineHeight: 1.4, fontStyle: "italic" }}>
+                * Duty and clearance are Ghanaian government estimates only. Final costs determined at Tema/Takoradi port.
+              </div>
+            </div>
           </div>
 
-          <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 12 }}>
+          <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 12 }}>
             <div style={{ fontWeight: 800, marginBottom: 6 }}>Vehicle Specifications</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 6 }}>
               {specs.map(([k, v]) => (
-                <div key={k} style={{ border: "1px solid #eaecf0", borderRadius: 8, padding: "8px 10px" }}>
+                <div key={k} style={{ border: "1px solid var(--border, #eaecf0)", borderRadius: 8, padding: "8px 10px" }}>
                   <div style={{ fontSize: 11, color: "#667085" }}>{k}</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#101828" }}>{v}</div>
                 </div>
@@ -322,13 +379,13 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
             {row.description && <div style={{ marginTop: 8, color: "#475467", fontSize: 13, lineHeight: 1.5 }}>{row.description}</div>}
           </div>
 
-          <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 12 }}>
+          <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 12 }}>
             <div style={{ fontWeight: 800, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}><Clock3 size={14} /> Import Timeline</div>
             {timeline.map((item, idx) => <div key={`${item.step}-${idx}`} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span>{item.step}</span><span>{item.days} day{item.days === 1 ? "" : "s"}</span></div>)}
             <div style={{ color: "#17b26a", fontWeight: 700, fontSize: 13, marginTop: 4 }}>Total Lead Time: ~{leadDays} days</div>
           </div>
 
-          <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 12 }}>
+          <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 12 }}>
             <div style={{ fontWeight: 800, marginBottom: 8 }}>Inspection & Report Documents</div>
             {row.documents.length ? row.documents.map((d, i) => (
               <a key={`${d.url}-${i}`} href={d.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", border: "1px solid #eaecf0", borderRadius: 8, marginBottom: 6, textDecoration: "none", color: "#175cd3", fontSize: 13 }}>
@@ -337,7 +394,7 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
             )) : <div style={{ fontSize: 12, color: "#667085" }}>No documents uploaded yet.</div>}
           </div>
 
-          <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 12 }}>
+          <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 12 }}>
             <div style={{ fontWeight: 800, marginBottom: 8 }}>Reserve / Import Request</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
               <input className="inp" placeholder="Your name *" value={buyer.name} onChange={(e) => setBuyer((b) => ({ ...b, name: e.target.value }))} />
@@ -355,11 +412,11 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
         </section>
       </div>
 
-      <section style={{ marginTop: 14, background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 12 }}>
+      <section style={{ marginTop: 14, background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 12 }}>
         <div style={{ fontWeight: 800, marginBottom: 10 }}>You may also like</div>
         <div className="mk-suggest-grid">
           {suggestions.length ? suggestions.map((s) => (
-            <button key={s.id} onClick={() => setPage(`car-${s.id}`)} style={{ textAlign: "left", border: "1px solid #eaecf0", borderRadius: 10, background: "#fff", padding: 8, cursor: "pointer" }}>
+            <button key={s.id} onClick={() => setPage(`car-${s.id}`)} style={{ textAlign: "left", border: "1px solid var(--border, #eaecf0)", borderRadius: 10, background: "var(--bg-card, #fff)", padding: 8, cursor: "pointer" }}>
               <div style={{ aspectRatio: "4/3", borderRadius: 8, overflow: "hidden", background: "#f2f4f7", marginBottom: 6 }}>{s.images?.[0] ? <img src={s.images[0]} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#101828" }}>{s.brand} {s.model}</div>
               <div style={{ fontSize: 12, color: "#667085" }}>{s.year} · {s.mileage.toLocaleString()} km</div>
@@ -372,10 +429,14 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
       <style>{`
         .mk-detail-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}
         .mk-suggest-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+        .sticky-cta{position:fixed;bottom:20px;left:20px;right:20px;z-index:100;box-shadow:0 10px 40px rgba(0,0,0,0.25)}
+        .btn-wa-full{width:100%;background:#25d366;color:#fff;border:0;border-radius:12px;padding:16px;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer}
         @media (max-width: 980px){
           .mk-detail-grid{grid-template-columns:1fr !important}
           .mk-suggest-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
         }
+        @media (min-width: 769px){ .mobile-only{display:none !important} }
+        @media (max-width: 768px){ .desktop-only{display:none !important} }
       `}</style>
     </div>
   );
@@ -384,8 +445,8 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
 export function MarketplaceSimplePage({ title, subtitle, ctaLabel, onCta, onBack }) {
   return (
     <div style={{ paddingTop: 72, maxWidth: 920, margin: "0 auto", paddingInline: 18, paddingBottom: 96 }}>
-      <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 14, padding: 20 }}><div style={{ marginBottom: 10 }}>{onBack && <button className="btn-sm btn-sm-ghost" onClick={onBack}>← Back</button>}</div>
-        <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 30, marginBottom: 6, color: "#101828" }}>{title}</div>
+      <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 14, padding: 20 }}><div style={{ marginBottom: 10 }}>{onBack && <button className="btn-sm btn-sm-ghost" onClick={onBack}>← Back</button>}</div>
+        <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 30, marginBottom: 6, color: "var(--text, #101828)" }}>{title}</div>
         <div style={{ color: "#667085", marginBottom: 16 }}>{subtitle}</div>
         {ctaLabel && <button className="btn-p" onClick={onCta}>{ctaLabel}</button>}
       </div>
@@ -439,12 +500,12 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
     <div style={{ paddingTop: 72, maxWidth: 920, margin: "0 auto", paddingInline: 14, paddingBottom: 96 }}>
       <button className="btn-sm btn-sm-ghost" onClick={() => setPage("home")}>← Back</button>
       <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
-        <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 14 }}>
+        <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 14 }}>
           <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 24, color: "#101828", marginBottom: 4 }}>Account & Tracking</div>
           <div style={{ color: "#667085", fontSize: 13 }}>Submit your details to track reservation/import requests and receive updates from Jaybesin Autos.</div>
         </div>
 
-        <div style={{ background: "#fff", border: "1px solid #eaecf0", borderRadius: 12, padding: 14 }}>
+        <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 14 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <input className="inp" placeholder="Full name *" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
             <input className="inp" placeholder="Phone number *" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
@@ -696,5 +757,5 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
 
 export function MarketplaceHighlights() {
   const items = [{ icon: <Flame size={14} />, text: "Hot Listings" }, { icon: <ShieldCheck size={14} />, text: "Verified Cars" }, { icon: <Sparkles size={14} />, text: "Transparent Costing" }];
-  return <div style={{ display: "flex", gap: 8, flexWrap: "wrap", padding: "0 2px 6px" }}>{items.map((i) => <span key={i.text} style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6, background: "#fff", border: "1px solid #eaecf0", borderRadius: 999, color: "#344054", padding: "6px 10px" }}>{i.icon}{i.text}</span>)}</div>;
+  return <div style={{ display: "flex", gap: 8, flexWrap: "wrap", padding: "0 2px 6px" }}>{items.map((i) => <span key={i.text} style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6, background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 999, color: "var(--text2, #344054)", padding: "6px 10px" }}>{i.icon}{i.text}</span>)}</div>;
 }

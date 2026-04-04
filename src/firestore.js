@@ -24,20 +24,24 @@ const COL = {
 
 // ─── SETTINGS (single doc: settings/main) ─────────────────────────
 export async function getSettings() {
+    if (!db) return null;
     const snap = await getDoc(doc(db, COL.settings, "main"));
     return snap.exists() ? snap.data() : null;
 }
 export async function saveSettings(data) {
+    if (!db) return;
     await setDoc(doc(db, COL.settings, "main"), data, { merge: true });
 }
 
 // ─── VEHICLES ─────────────────────────────────────────────────────
 export function onVehicles(cb) {
+    if (!db) return () => {};
     return onSnapshot(collection(db, COL.vehicles), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 }
 export async function saveVehicle(vehicle) {
+    if (!db) return;
     if (vehicle.id && typeof vehicle.id === "string") {
         const { id, ...data } = vehicle;
         await setDoc(doc(db, COL.vehicles, id), data, { merge: true });
@@ -46,16 +50,19 @@ export async function saveVehicle(vehicle) {
     }
 }
 export async function deleteVehicle(id) {
+    if (!db) return;
     await deleteDoc(doc(db, COL.vehicles, id));
 }
 
 // ─── CARS (Marketplace) ──────────────────────────────────────────
 export function onCars(cb) {
+    if (!db) return () => {};
     return onSnapshot(collection(db, COL.cars), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 }
 export async function saveCar(car) {
+    if (!db) return;
     if (car.id && typeof car.id === "string") {
         const { id, ...data } = car;
         await setDoc(doc(db, COL.cars, id), data, { merge: true });
@@ -64,16 +71,19 @@ export async function saveCar(car) {
     }
 }
 export async function deleteCar(id) {
+    if (!db) return;
     await deleteDoc(doc(db, COL.cars, id));
 }
 
 // ─── CHARGING ─────────────────────────────────────────────────────
 export function onCharging(cb) {
+    if (!db) return () => {};
     return onSnapshot(collection(db, COL.charging), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 }
 export async function saveCharger(charger) {
+    if (!db) return;
     if (charger.id && typeof charger.id === "string") {
         const { id, ...data } = charger;
         await setDoc(doc(db, COL.charging, id), data, { merge: true });
@@ -82,16 +92,19 @@ export async function saveCharger(charger) {
     }
 }
 export async function deleteCharger(id) {
+    if (!db) return;
     await deleteDoc(doc(db, COL.charging, id));
 }
 
 // ─── PARTS ────────────────────────────────────────────────────────
 export function onParts(cb) {
+    if (!db) return () => {};
     return onSnapshot(collection(db, COL.parts), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 }
 export async function savePart(part) {
+    if (!db) return;
     if (part.id && typeof part.id === "string") {
         const { id, ...data } = part;
         await setDoc(doc(db, COL.parts, id), data, { merge: true });
@@ -100,16 +113,19 @@ export async function savePart(part) {
     }
 }
 export async function deletePart(id) {
+    if (!db) return;
     await deleteDoc(doc(db, COL.parts, id));
 }
 
 // ─── ORDERS ───────────────────────────────────────────────────────
 export function onOrders(cb) {
+    if (!db) return () => {};
     return onSnapshot(collection(db, COL.orders), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 }
 export async function saveOrder(order) {
+    if (!db) return;
     if (order.id && typeof order.id === "string") {
         const { id, ...data } = order;
         await setDoc(doc(db, COL.orders, id), data, { merge: true });
@@ -118,16 +134,19 @@ export async function saveOrder(order) {
     }
 }
 export async function deleteOrder(id) {
+    if (!db) return;
     await deleteDoc(doc(db, COL.orders, id));
 }
 
 // ─── INQUIRIES ────────────────────────────────────────────────────
 export function onInquiries(cb) {
+    if (!db) return () => {};
     return onSnapshot(collection(db, COL.inquiries), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 }
 export async function addInquiry(data) {
+    if (!db) return;
     await addDoc(collection(db, COL.inquiries), {
         ...data,
         status: "new",
@@ -136,9 +155,11 @@ export async function addInquiry(data) {
     });
 }
 export async function updateInquiryStatus(id, status) {
+    if (!db) return;
     await updateDoc(doc(db, COL.inquiries, id), { status });
 }
 export async function deleteInquiry(id) {
+    if (!db) return;
     await deleteDoc(doc(db, COL.inquiries, id));
 }
 
@@ -153,6 +174,7 @@ export async function uploadImage(base64DataUrl, path) {
 // ─── SEED: Write default data to Firestore ────────────────────────
 // Call this ONCE from the admin panel to initialise the database
 export async function seedFirestore(VEHICLES0, CHARGING0, PARTS0, ORDERS0, SETTINGS0, CARS0 = []) {
+    if (!db) return;
     // Settings
     const { theme, ...settingsRest } = SETTINGS0;
     await setDoc(doc(db, COL.settings, "main"), settingsRest, { merge: true });

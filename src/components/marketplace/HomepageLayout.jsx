@@ -1,9 +1,11 @@
-import { Search, SlidersHorizontal, Home, CarFront, Tag, UserCircle2, Flame } from "lucide-react";
+import { Search, SlidersHorizontal, Home, CarFront, Tag, UserCircle2, Flame, ShieldCheck, Ship, Headphones, Star, ChevronLeft, ChevronRight, CheckCircle2, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 
 function TagBadge({ tag }) {
   const palette = { hot: "#ff4d30", verified: "#17b26a", new: "#1d9bf0", clearance: "#ff6f00" };
+  const labels = { hot: "🔥 HOT DEAL", verified: "✅ VERIFIED", new: "✨ NEW", clearance: "🏷️ CLEARANCE" };
   const c = palette[tag] || "#7b8190";
-  return <span style={{ fontSize: 10, background: `${c}1a`, border: `1px solid ${c}55`, color: c, borderRadius: 4, padding: "2px 6px", fontWeight: 700 }}>{tag}</span>;
+  return <span style={{ fontSize: 9, background: c, color: "#fff", borderRadius: 4, padding: "2px 6px", fontWeight: 800, textTransform: "uppercase" }}>{labels[tag] || tag}</span>;
 }
 
 function CarFeedCard({ car, setPage, usd }) {
@@ -71,24 +73,40 @@ export function MarketplaceHomepageLayout({
   pageSize,
   setPage,
   usd,
+  settings = {}
 }) {
   const totalPages = Math.max(1, Math.ceil(filteredCars.length / pageSize));
   const start = (pageNum - 1) * pageSize;
   const pageCars = filteredCars.slice(start, start + pageSize);
 
+  const [tIdx, setTIdx] = useState(0);
+  const tests = settings.testimonials || [];
+
+  useEffect(() => {
+    if (!tests.length) return;
+    const itv = setInterval(() => setTIdx(p => (p + 1) % tests.length), 5000);
+    return () => clearInterval(itv);
+  }, [tests.length]);
+
   return (
     <div className="mk-wrap">
-      <div className="mk-top-tabs">
-        {quickTabs.map((tab) => (
-          <button key={tab} className={`mk-top-tab${quickTab === tab ? " act" : ""}`} onClick={() => { setQuickTab(tab); setPageNum(1); }}>{tab}</button>
-        ))}
-      </div>
-
       <div className="mk-content">
+        {/* Category Cards Navigation */}
+        <div className="cat-nav-grid">
+          {quickTabs.map((tab) => {
+            const active = quickTab === tab;
+            return (
+              <button key={tab} className={`cat-card${active ? " active" : ""}`} onClick={() => { setQuickTab(tab); setPageNum(1); }}>
+                <div className="cat-card-label">{tab}</div>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="mk-search-row">
           <div className="mk-search-box">
             <Search size={16} color="#98a2b3" />
-            <input placeholder="Brand, model, body type" value={filters.q} onChange={(e) => update("q", e.target.value)} />
+            <input placeholder="Search brand, model, body..." value={filters.q} onChange={(e) => update("q", e.target.value)} />
           </div>
           <button className="mk-filter-btn" onClick={() => setShowFilters((v) => !v)}>
             <SlidersHorizontal size={16} /> Filters
@@ -97,6 +115,16 @@ export function MarketplaceHomepageLayout({
             {Object.entries(sortOptions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
         </div>
+
+        {Object.values(filters).some(v => v !== "") && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: "#667085", fontWeight: 600 }}>Active Filters:</span>
+            <button className="btn-sm btn-sm-neon" style={{ fontSize: 10, padding: "2px 8px" }} onClick={() => {
+              Object.keys(filters).forEach(k => update(k, ""));
+              setQuickTab("All Cars");
+            }}>Clear All ✕</button>
+          </div>
+        )}
 
         {(showFilters || hero) && (
           <div className="mk-filters">
@@ -109,22 +137,89 @@ export function MarketplaceHomepageLayout({
           </div>
         )}
 
-        <div style={{ fontSize: 12, color: "#667085", marginBottom: 8 }}>{filteredCars.length} cars</div>
+        <div style={{ fontSize: 12, color: "#667085", marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
+          <span>Showing {filteredCars.length} vehicles</span>
+          {quickTab !== "All Cars" && <span style={{ fontWeight: 700, color: "#2563eb" }}>Category: {quickTab}</span>}
+        </div>
 
         <div className="mk-grid">
           {pageCars.map((car) => <CarFeedCard key={car.id} car={car} setPage={setPage} usd={usd} />)}
         </div>
 
-        {filteredCars.length === 0 && <div style={{ color: "#667085", padding: "28px 0" }}>No cars match this filter.</div>}
+        {filteredCars.length === 0 && <div style={{ color: "#667085", padding: "48px 0", textAlign: "center", background: "#fff", borderRadius: 12, border: "1px dashed #eaecf0" }}>No vehicles match these filters.</div>}
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
           <span style={{ fontSize: 12, color: "#98a2b3" }}>Page {pageNum} / {totalPages}</span>
           <div style={{ display: "flex", gap: 6 }}>
             <button className="btn-sm btn-sm-ghost" disabled={pageNum <= 1} onClick={() => setPageNum((p) => Math.max(1, p - 1))}>Prev</button>
-            <button className="btn-sm btn-sm-neon" disabled={pageNum >= totalPages} onClick={() => setPageNum((p) => Math.min(totalPages, p + 1))}>Next</button>
+            <button className="btn-p btn-sm" disabled={pageNum >= totalPages} onClick={() => setPageNum((p) => Math.min(totalPages, p + 1))}>Next Page →</button>
           </div>
         </div>
       </div>
+
+      {hero && (
+        <div style={{ padding: "48px 0", background: "#f9fafb", borderTop: "1px solid #eaecf0", marginTop: 48 }}>
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 12px" }}>
+            <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: "#101828", marginBottom: 8 }}>The Gold Standard in Car Imports</h2>
+              <p style={{ fontSize: 14, color: "#667085" }}>Why business owners and individuals trust Jaybesin Autos</p>
+            </div>
+            
+            {/* USP Grid */}
+            <div className="usp-grid">
+              {[
+                { icon: ShieldCheck, title: "Verified Sourcing", desc: "Every car is inspected at source in China before shipping." },
+                { icon: Ship, title: "Transparent Shipping", desc: "Track your vehicle from Tema port arrival to final delivery." },
+                { icon: Headphones, title: "Local Support", desc: "Our Accra-based team handles all clearing and documentation." }
+              ].map((u, i) => (
+                <div key={i} className="usp-item">
+                  <div className="usp-icon"><u.icon size={20} /></div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: "#101828" }}>{u.title}</div>
+                    <div style={{ fontSize: 11, color: "#667085" }}>{u.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Testimonial Slider */}
+            {tests.length > 0 && (
+              <div className="test-slider">
+                <div className="test-card">
+                  <div style={{ display: "flex", gap: 4, justifyContent: "center", marginBottom: 12 }}>
+                    {[...Array(tests[tIdx].stars || 5)].map((_, i) => <Star key={i} size={14} fill="#f97316" color="#f97316" />)}
+                  </div>
+                  <div style={{ fontSize: 16, fontStyle: "italic", color: "#344054", lineHeight: 1.6, marginBottom: 16 }}>"{tests[tIdx].text}"</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#101828" }}>— {tests[tIdx].name} <span style={{ fontWeight: 400, color: "#667085" }}>({tests[tIdx].role})</span></div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div style={{ background: "#fff", padding: "48px 12px", marginTop: 48 }}>
+            <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+              <div style={{ textAlign: "center", marginBottom: 32 }}>
+                <h2 style={{ fontSize: 24, fontWeight: 800, color: "#101828", marginBottom: 8 }}>4 Step Import Process</h2>
+                <p style={{ fontSize: 14, color: "#667085" }}>Transparent, reliable, and stress-free</p>
+              </div>
+              <div className="proc-grid">
+                {[
+                  { step: "01", title: "Select & Inspect", desc: "Pick your car and receive a detailed condition report." },
+                  { step: "02", title: "Secure Payment", desc: "Pay via bank transfer or dedicated payment links." },
+                  { step: "03", title: "Ocean Freight", desc: "Vehicles are shipped in secure containers to Tema." },
+                  { step: "04", title: "Clear & Collect", desc: "We handle port clearance; you drive away in Accra." }
+                ].map((p, i) => (
+                  <div key={i} className="proc-item">
+                    <div className="proc-num">{p.step}</div>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: "#101828", marginBottom: 6 }}>{p.title}</div>
+                    <div style={{ fontSize: 12, color: "#667085", lineHeight: 1.5 }}>{p.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .mk-wrap{background:#f2f4f7;min-height:100vh;padding-top:48px;padding-bottom:96px}
@@ -156,6 +251,29 @@ export function MarketplaceHomepageLayout({
           .mk-content{max-width:1280px;margin:0 auto}
           .mk-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
           .mk-filters{grid-template-columns:repeat(6,minmax(0,1fr))}
+        }
+        .usp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px}
+        .usp-item{display:flex;gap:12px;align-items:flex-start;background:#f9fafb;padding:16px;border-radius:12px;border:1px solid #f2f4f7}
+        .usp-icon{background:#eff6ff;color:#2563eb;padding:8px;border-radius:8px}
+        .test-slider{max-width:600px;margin:0 auto}
+        .test-card{background:#fff;border:1px solid #eaecf0;padding:24px;border-radius:16px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.03)}
+        .proc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+        .proc-item{text-align:center;position:relative}
+        .proc-num{width:32px;height:32px;background:#2563eb;color:#fff;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;margin:0 auto 12px}
+        @media (max-width: 768px){
+          .usp-grid{grid-template-columns:1fr;gap:10px}
+          .proc-grid{grid-template-columns:1fr 1fr;gap:20px}
+        }
+        .cat-nav-grid{display:flex;gap:12px;overflow-x:auto;padding:12px 2px 20px;scrollbar-width:none}
+        .cat-nav-grid::-webkit-scrollbar{display:none}
+        .cat-card{flex:0 0 auto;background:#fff;border:1px solid #eaecf0;border-radius:12px;padding:14px 24px;min-width:110px;text-align:center;cursor:pointer;transition:0.2s;display:grid;place-items:center}
+        .cat-card.active{background:#101828;border-color:#101828;box-shadow:0 8px 24px rgba(0,0,0,0.12)}
+        .cat-card-label{font-size:13px;font-weight:700;color:#475467}
+        .cat-card.active .cat-card-label{color:#fff}
+        @media (max-width: 640px){
+          .cat-card{padding:10px 14px;min-width:90px}
+          .cat-card-icon{font-size:18px}
+          .cat-card-label{font-size:11px}
         }
       `}</style>
     </div>
