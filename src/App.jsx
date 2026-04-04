@@ -41,7 +41,7 @@ import { MarketplaceMobileNav } from "./components/marketplace/HomepageLayout";
 // Utils & Config
 import { 
   onVehicles, onCars, onCharging, onParts, onOrders, onInquiries,
-  saveVehicle, saveCar, deleteVehicle, saveCharger, deleteCharger,
+  saveVehicle, saveCar, deleteVehicle, deleteCar, saveCharger, deleteCharger,
   savePart, deletePart, saveOrder, deleteOrder,
   updateInquiryStatus, deleteInquiry, 
   getSettings, saveSettings as fsaveSettings, uploadImage
