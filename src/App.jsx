@@ -14,7 +14,6 @@ import { AdminSidebar } from "./components/admin/AdminSidebar";
 import { InvoiceModal, VehicleModal } from "./components/admin/Modals";
 
 // Pages
-import { HomePage } from "./pages/HomePage";
 import { BrowsePage } from "./pages/BrowsePage";
 import { CarDetailPage } from "./pages/CarDetailPage";
 import { GaragePage } from "./pages/GaragePage";
@@ -109,18 +108,66 @@ export default function App() {
     const unsub = onAuthStateChanged(auth, (user) => {
       setLoggedIn(!!user);
       setFbReady(true);
+      console.log("[Auth] State changed. LoggedIn:", !!user);
     });
     return () => unsub();
   }, []);
 
   // ── Firestore real-time listeners ──
   useEffect(() => {
-    const u1 = onVehicles(setVehicles);
-    const uCars = onCars(setCars);
-    const u2 = onCharging(setCharging);
-    const u3 = onParts(setParts);
-    const u4 = onOrders(setOrders);
-    getSettings().then(s => { if (s) setSettings(prev => ({ ...prev, ...s })); });
+    const errorLog = (name) => (err) => console.error(`CRITICAL: [Firestore] ${name} load error:`, err.code, err.message);
+
+    const u1 = onVehicles((data) => {
+      console.log(`[Firestore] Loaded ${data.length} vehicles.`);
+      if (data.length > 0) {
+        console.log("[Firestore] FIRST VEHICLE KEYS:", Object.keys(data[0]).join(", "));
+        console.log("[Firestore] FIRST VEHICLE DATA:", JSON.stringify(data[0]));
+      }
+      setVehicles(data);
+    }, errorLog("Vehicles"));
+
+    const uCars = onCars((data) => {
+      console.log(`[Firestore] Loaded ${data.length} cars successfully.`);
+      if (data.length > 0) {
+        const sample = data[0];
+        console.log("[Firestore] FIRST CAR DATA:", JSON.stringify({
+          id: sample.id,
+          brand: sample.brand,
+          model: sample.model,
+          priceChina: sample.priceChina || sample.price || "MISSING",
+          purchaseCost: sample.purchaseCost || "MISSING",
+          hasLanded: !!sample.estimatedLandedCost
+        }, null, 2));
+      }
+      setCars(data);
+    }, errorLog("Cars"));
+
+    const u2 = onCharging((data) => {
+      console.log(`[Firestore] Loaded ${data.length} chargers.`);
+      setCharging(data);
+    }, errorLog("Charging"));
+
+    const u3 = onParts((data) => {
+      console.log(`[Firestore] Loaded ${data.length} parts.`);
+      setParts(data);
+    }, errorLog("Parts"));
+
+    const u4 = onOrders((data) => {
+      console.log(`[Firestore] Loaded ${data.length} orders.`);
+      setOrders(data);
+    }, errorLog("Orders"));
+    
+    getSettings().then(s => { 
+      if (s) {
+        setSettings(prev => ({ ...prev, ...s }));
+        console.log("[Firestore] Global settings loaded.");
+      } else {
+        console.warn("[Firestore] No settings document found.");
+      }
+    }).catch(err => {
+      console.error("CRITICAL: [Firestore] SETTINGS load error:", err.code, err.message);
+    });
+
     return () => { u1(); uCars(); u2(); u3(); u4(); };
   }, []);
 
@@ -230,7 +277,7 @@ export default function App() {
     if (printNow) setTimeout(() => win.print(), 500);
   };
 
-  const marketplaceCars = cars.length ? cars : vehicles;
+  const marketplaceCars = [...cars, ...vehicles];
   const isMarketplaceSurface = location.pathname === "/" || location.pathname.startsWith("/browse") || location.pathname.startsWith("/car/");
   const isAdminPath = location.pathname.startsWith("/admin");
   const annOn = settings.annBarOn && annVisible && !isAdminPath;
@@ -268,7 +315,7 @@ export default function App() {
         paddingBottom: (isMarketplaceSurface && !isAdminPath) ? "80px" : 0
       }}>
         <Routes>
-          <Route path="/" element={<HomePage vehicles={vehicles} settings={settings} />} />
+          <Route path="/" element={<BrowsePage marketplaceCars={marketplaceCars} settings={settings} />} />
           <Route path="/browse" element={<BrowsePage marketplaceCars={marketplaceCars} settings={settings} />} />
           <Route path="/car/:id" element={<CarDetailPage marketplaceCars={marketplaceCars} settings={settings} />} />
           <Route path="/garage" element={<GaragePage vehicles={vehicles} settings={settings} />} />
@@ -378,7 +425,20 @@ export default function App() {
         />
       )}
 
-      {!isAdminPath && isMarketplaceSurface && <MarketplaceMobileNav setPage={(p) => navigate(`/${p}`)} activePage={location.pathname === "/" ? "home" : location.pathname.slice(1)} />}
+      {!isAdminPath && isMarketplaceSurface && (
+        <MarketplaceMobileNav 
+          setPage={(p) => {
+            if (p.startsWith("car-")) {
+              navigate("/car/" + p.replace("car-", ""));
+            } else if (p === "home") {
+              navigate("/");
+            } else {
+              navigate("/" + (p === "browse" ? "/" : p));
+            }
+          }} 
+          activePage={location.pathname === "/" ? "home" : location.pathname.slice(1)} 
+        />
+      )}
       {!isAdminPath && !isMarketplaceSurface && <Footer onAdminClick={() => navigate("/admin")} settings={settings} />}
     </HelmetProvider>
   );

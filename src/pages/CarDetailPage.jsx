@@ -14,6 +14,15 @@ export function CarDetailPage({ marketplaceCars = [], settings = {} }) {
         car={car} 
         cars={marketplaceCars} 
         settings={settings} 
+        setPage={(p) => {
+          if (p.startsWith("car-")) {
+            navigate("/car/" + p.replace("car-", ""));
+          } else if (p === "home") {
+            navigate("/");
+          } else {
+            navigate("/" + (p === "browse" ? "/" : p));
+          }
+        }}
         // Forward navigation to the router
         onBack={() => navigate(-1)}
       />

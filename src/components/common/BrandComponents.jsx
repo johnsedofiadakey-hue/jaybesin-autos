@@ -112,7 +112,7 @@ export function Nav({ setPage, settings, annOn, page, onAdminClick }) {
   }, [drawerOpen]);
   const navLinks = [["Home", "home"], ["Browse Cars", "browse"], ["Import From China", "import"], ["Sell Car", "sell"], ["Deals", "deals"], ["Account", "account"]];
   const go = (p) => { setPage(p); setDrawerOpen(false); };
-  const parts = settings.companyName.split(" ");
+  const parts = (settings?.companyName || "Jaybesin Autos").split(" ");
   return (
     <>
       <nav className={`nav${sc ? " sc" : ""}`} style={{ top: annOn ? "38px" : "0" }}>

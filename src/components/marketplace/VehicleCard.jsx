@@ -31,10 +31,10 @@ export function VehicleCard({ v, delay = 0, settings }) {
         <div className="v-card-name">{v.name}</div>
         <div className="v-card-tags">
           {fuelTag(v.fuel)}
-          {availTag(v.status)}
+          {availTag(v.availability)}
         </div>
-        <div className="v-card-price">{fmtUSD(v.price)}</div>
-        {showGHS && v.price && <div className="v-card-ghs">{fmtGHS(v.price, rate)}</div>}
+        <div className="v-card-price">{fmtUSD(v.estimatedLandedCost || v.price)}</div>
+        {showGHS && (v.estimatedLandedCost || v.price) && <div className="v-card-ghs">{fmtGHS(v.estimatedLandedCost || v.price, rate)}</div>}
       </div>
       <div className="v-card-footer">
         <Link to={`/car/${v.id}`} className="btn-sm btn-sm-neon" style={{ cursor: 'none' }}>Details →</Link>

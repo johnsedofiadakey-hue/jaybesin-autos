@@ -42,8 +42,8 @@ const toDoc = (doc, idx) => {
   return { name: doc.name || `Document ${idx + 1}`, url: doc.url || doc.link || "", type: doc.type || "report" };
 };
 
-export const calcPurchaseCost = (car) => asNum(car.priceChina) + asNum(car.inspectionFee) + asNum(car.shippingFee);
-export const calcEstimatedLandedCost = (car) => calcPurchaseCost(car) + asNum(car.clearingEstimate);
+export const calcPurchaseCost = (car) => asNum(car.priceChina || car.price) + asNum(car.inspectionFee) + asNum(car.shippingFee);
+export const calcEstimatedLandedCost = (car) => calcPurchaseCost(car) + asNum(car.clearingEstimate || car.duties);
 
 const resolveTimeline = (settings = {}) => {
   const rows = Array.isArray(settings.importTimeline) && settings.importTimeline.length
@@ -66,8 +66,8 @@ export const normalizeCar = (car = {}) => {
   const images = Array.isArray(car.images) ? car.images.filter(Boolean) : [];
   const documents = (Array.isArray(car.documents) ? car.documents : []).map(toDoc).filter((d) => d && d.url);
   const tags = Array.isArray(car.tags) ? car.tags.filter(Boolean) : [];
-  const purchaseCost = asNum(car.purchaseCost || calcPurchaseCost(car));
-  const estimatedLandedCost = asNum(car.estimatedLandedCost || car.totalLandedCost || car.totalGhana || calcEstimatedLandedCost(car));
+  const purchaseCost = asNum(car.purchaseCost) || calcPurchaseCost(car);
+  const estimatedLandedCost = asNum(car.estimatedLandedCost || car.totalLandedCost || car.totalGhana) || calcEstimatedLandedCost(car);
 
   return {
     ...car,
@@ -83,14 +83,15 @@ export const normalizeCar = (car = {}) => {
     engine: car.engine || car.specs?.engine || "N/A",
     description: car.description || "",
     locationChina: car.locationChina || car.location || "China",
-    priceChina: asNum(car.priceChina || car.price || 0),
-    inspectionFee: asNum(car.inspectionFee || 0),
-    shippingFee: asNum(car.shippingFee || 0),
-    insuranceFee: asNum(car.insuranceFee || 0),
-    clearingEstimate: asNum(car.clearingEstimate || car.duties || 0),
+    priceChina: asNum(car.priceChina) || asNum(car.price) || 0,
+    inspectionFee: asNum(car.inspectionFee) || 0,
+    shippingFee: asNum(car.shippingFee) || 3500, // Def estimate
+    insuranceFee: asNum(car.insuranceFee) || 0,
+    clearingEstimate: asNum(car.clearingEstimate) || asNum(car.duties) || 0,
     purchaseCost,
     estimatedLandedCost,
     totalLandedCost: estimatedLandedCost,
+    isPriceAvailable: (asNum(car.priceChina) || asNum(car.price) || asNum(car.purchaseCost)) > 0,
     images,
     documents,
     tags,
@@ -175,12 +176,13 @@ export function MarketplaceBrowsePage({ cars, setPage, hero = false, settings = 
 }
 
 export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) {
+  if (!car) return <div style={{ paddingTop: 120, textAlign: "center" }}>Car not found.</div>;
+
   const [active, setActive] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [buyer, setBuyer] = useState({ name: "", phone: "", email: "", note: "" });
   const row = normalizeCar(car);
-  if (!car) return <div style={{ paddingTop: 120, textAlign: "center" }}>Car not found.</div>;
 
   const timeline = resolveTimeline(settings);
   const leadDays = computeLeadDays(settings, timeline);
@@ -238,9 +240,11 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
         "Phone: " + buyer.phone.trim() + "\n" +
         (buyer.email.trim() ? "Email: " + buyer.email.trim() + "\n" : "") +
         "Car: " + row.brand + " " + row.model + " (" + row.year + ")\n" +
-        "FOB: " + usd(row.priceChina) + "\n" +
-        "Purchase Cost: " + usd(row.purchaseCost) + "\n" +
-        "Est. Landed: " + usd(row.estimatedLandedCost) + "\n" +
+        (row.isPriceAvailable ? (
+          "FOB: " + usd(row.priceChina) + "\n" +
+          "Purchase Cost: " + usd(row.purchaseCost) + "\n" +
+          "Est. Landed: " + usd(row.estimatedLandedCost) + "\n"
+        ) : "Price: Request Quote\n") +
         "Note: " + (buyer.note || "N/A");
 
       const trackingId = "REQ-" + String(Date.now()).slice(-8);
@@ -348,22 +352,29 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
               <span>Financial Transparency</span>
               <span style={{ fontSize: 10, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4 }}>USD</span>
             </div>
-            <div style={{ display: "grid", gap: 8 }}>
-              {[ ["Vehicle Price (FOB)", row.priceChina], ["Inspection & Report", row.inspectionFee], ["Shipping to Ghana", row.shippingFee] ].map(([l, v]) => (
-                <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: "#98a2b3" }}>{l}</span><span style={{ fontWeight: 600 }}>{usd(v)}</span></div>
-              ))}
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-                <span style={{ fontWeight: 800, color: "#f97316" }}>Total Purchase Cost</span>
-                <span style={{ fontWeight: 800, fontSize: 20, color: "#f97316" }}>{usd(row.purchaseCost)}</span>
+            {row.isPriceAvailable ? (
+              <div style={{ display: "grid", gap: 8 }}>
+                {[ ["Vehicle Price (FOB)", row.priceChina], ["Inspection & Report", row.inspectionFee], ["Shipping to Ghana", row.shippingFee] ].map(([l, v]) => (
+                  <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: "#98a2b3" }}>{l}</span><span style={{ fontWeight: 600 }}>{usd(v)}</span></div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                  <span style={{ fontWeight: 800, color: "#f97316" }}>Total Purchase Cost</span>
+                  <span style={{ fontWeight: 800, fontSize: 20, color: "#f97316" }}>{usd(row.purchaseCost)}</span>
+                </div>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 10, marginTop: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}><span style={{ color: "#98a2b3" }}>Est. Duty & Clearance</span><span style={{ fontWeight: 600 }}>{usd(row.clearingEstimate)}</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}><span style={{ color: "#fff", fontWeight: 700 }}>Est. Total Landed</span><span style={{ fontWeight: 800, color: "#fff" }}>{usd(row.estimatedLandedCost)}*</span></div>
+                </div>
+                <div style={{ fontSize: 10, color: "#667085", lineHeight: 1.4, fontStyle: "italic" }}>
+                  * Duty and clearance are Ghanaian government estimates only. Final costs determined at Tema/Takoradi port.
+                </div>
               </div>
-              <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 10, marginTop: 4 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}><span style={{ color: "#98a2b3" }}>Est. Duty & Clearance</span><span style={{ fontWeight: 600 }}>{usd(row.clearingEstimate)}</span></div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}><span style={{ color: "#fff", fontWeight: 700 }}>Est. Total Landed</span><span style={{ fontWeight: 800, color: "#fff" }}>{usd(row.estimatedLandedCost)}*</span></div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "10px 0" }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#f97316", marginBottom: 4 }}>Price on Request</div>
+                <div style={{ fontSize: 12, color: "#98a2b3" }}>Contact our agents for the latest FOB & landed cost estimates for this vehicle.</div>
               </div>
-              <div style={{ fontSize: 10, color: "#667085", lineHeight: 1.4, fontStyle: "italic" }}>
-                * Duty and clearance are Ghanaian government estimates only. Final costs determined at Tema/Takoradi port.
-              </div>
-            </div>
+            )}
           </div>
 
           <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 12 }}>
@@ -420,7 +431,7 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
               <div style={{ aspectRatio: "4/3", borderRadius: 8, overflow: "hidden", background: "#f2f4f7", marginBottom: 6 }}>{s.images?.[0] ? <img src={s.images[0]} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#101828" }}>{s.brand} {s.model}</div>
               <div style={{ fontSize: 12, color: "#667085" }}>{s.year} · {s.mileage.toLocaleString()} km</div>
-              <div style={{ fontSize: 13, color: "#f97316", fontWeight: 800 }}>{usd(s.purchaseCost)}</div>
+              <div style={{ fontSize: 13, color: "#f97316", fontWeight: 800 }}>{s.isPriceAvailable ? usd(s.purchaseCost) : "Price on Request"}</div>
             </button>
           )) : <div style={{ fontSize: 12, color: "#667085" }}>No similar cars available yet.</div>}
         </div>

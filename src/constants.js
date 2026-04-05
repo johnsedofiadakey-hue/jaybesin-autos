@@ -39,6 +39,7 @@ export const PRESETS = {
   },
 };
 
+export const VERSION = "1.0.4-" + Date.now();
 export const DEFAULT_THEME = PRESETS["Dark Neon"];
 
 export const VEHICLES0 = [

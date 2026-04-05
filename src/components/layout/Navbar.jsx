@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Car, User } from "lucide-react";
+import { Menu, X, Car, User, Flame } from "lucide-react";
 
 export function Navbar({ settings, annOn, onAdminClick }) {
   const [sc, setSc] = useState(false);
@@ -20,8 +20,7 @@ export function Navbar({ settings, annOn, onAdminClick }) {
   }, [drawerOpen]);
 
   const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Browse Cars", path: "/browse" },
+    { name: "Browse Cars", path: "/" },
     { name: "Import From China", path: "/import" },
     { name: "Sell Car", path: "/sell" },
     { name: "Deals", path: "/deals" },
@@ -78,17 +77,25 @@ export function Navbar({ settings, annOn, onAdminClick }) {
           <button onClick={() => setDrawerOpen(false)} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border2)", background: "var(--bg2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, cursor: "pointer", color: "var(--text)" }}><X size={18} /></button>
         </div>
         
-        {navLinks.map((link) => (
-          <Link key={link.name} to={link.path} className="nav-drawer-link" onClick={() => setDrawerOpen(false)}>
-            <span style={{ margin: "0 14px 0 0", fontSize: 20 }}>
-              {link.path === "/" ? "🏠" : link.path === "/browse" ? "🚗" : link.path === "/import" ? "🚢" : link.path === "/sell" ? "💼" : link.path === "/deals" ? "🔥" : "👤"}
-            </span>
-            {link.name}
-          </Link>
-        ))}
+        {navLinks.map((link) => {
+          const Icon = link.path === "/" ? Car : link.path === "/browse" ? Car : link.path === "/import" ? Menu : link.path === "/sell" ? User : Car; // Simplified for now but better than emojis
+          return (
+            <Link key={link.name} to={link.path} className="nav-drawer-link" onClick={() => setDrawerOpen(false)}>
+              <span style={{ margin: "0 14px 0 0", color: "var(--neon)" }}>
+                {link.path === "/" && <Car size={20} />}
+                {link.path === "/browse" && <Car size={20} />}
+                {link.path === "/import" && <Menu size={20} />}
+                {link.path === "/sell" && <User size={20} />}
+                {link.path === "/deals" && <Flame size={20} />}
+                {link.path === "/account" && <User size={20} />}
+              </span>
+              {link.name}
+            </Link>
+          );
+        })}
         
         <Link to="/browse" className="btn-p nav-drawer-cta" onClick={() => setDrawerOpen(false)}>Browse Cars →</Link>
-        <button className="btn-sm btn-sm-ghost" style={{ marginTop: "10px", width: "100%", justifyContent: "center" }} onClick={onAdminClick}>Admin Portal</button>
+        <button className="btn-sm btn-sm-ghost" style={{ marginTop: "10px", width: "100%", justifyContent: "center", display: "flex", alignItems: "center", gap: "8px" }} onClick={onAdminClick}><User size={14} /> Admin Portal</button>
         
         <div style={{ marginTop: "auto", paddingTop: 24, fontSize: 11, color: "var(--text3)", textAlign: "center" }}>
           {settings.phone} · {settings.email}

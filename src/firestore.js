@@ -34,11 +34,11 @@ export async function saveSettings(data) {
 }
 
 // ─── VEHICLES ─────────────────────────────────────────────────────
-export function onVehicles(cb) {
+export function onVehicles(cb, onError) {
     if (!db) return () => {};
     return onSnapshot(collection(db, COL.vehicles), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    }, onError);
 }
 export async function saveVehicle(vehicle) {
     if (!db) return;
@@ -55,11 +55,11 @@ export async function deleteVehicle(id) {
 }
 
 // ─── CARS (Marketplace) ──────────────────────────────────────────
-export function onCars(cb) {
+export function onCars(cb, onError) {
     if (!db) return () => {};
     return onSnapshot(collection(db, COL.cars), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    }, onError);
 }
 export async function saveCar(car) {
     if (!db) return;
@@ -76,11 +76,11 @@ export async function deleteCar(id) {
 }
 
 // ─── CHARGING ─────────────────────────────────────────────────────
-export function onCharging(cb) {
+export function onCharging(cb, onError) {
     if (!db) return () => {};
     return onSnapshot(collection(db, COL.charging), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    }, onError);
 }
 export async function saveCharger(charger) {
     if (!db) return;
@@ -97,11 +97,11 @@ export async function deleteCharger(id) {
 }
 
 // ─── PARTS ────────────────────────────────────────────────────────
-export function onParts(cb) {
+export function onParts(cb, onError) {
     if (!db) return () => {};
     return onSnapshot(collection(db, COL.parts), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    }, onError);
 }
 export async function savePart(part) {
     if (!db) return;
@@ -118,11 +118,11 @@ export async function deletePart(id) {
 }
 
 // ─── ORDERS ───────────────────────────────────────────────────────
-export function onOrders(cb) {
+export function onOrders(cb, onError) {
     if (!db) return () => {};
     return onSnapshot(collection(db, COL.orders), (snap) => {
         cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    }, onError);
 }
 export async function saveOrder(order) {
     if (!db) return;

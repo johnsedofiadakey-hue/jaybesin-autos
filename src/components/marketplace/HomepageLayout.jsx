@@ -21,9 +21,15 @@ function CarFeedCard({ car, setPage, usd }) {
         <div style={{ fontSize: 12, color: "#667085", marginBottom: 5 }}>{car.year} / {(car.mileage / 10000).toFixed(1)}万公里</div>
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>{(car.tags || []).slice(0, 2).map((t) => <TagBadge key={t} tag={t} />)}</div>
         <div style={{ display: "grid", gap: 2 }}>
-          <div style={{ fontSize: 12, color: "#667085" }}>Vehicle Price (FOB): <strong style={{ color: "#101828" }}>{usd(car.priceChina)}</strong></div>
-          <div style={{ fontSize: 12, color: "#667085" }}>Shipping: <strong style={{ color: "#101828" }}>{usd(car.shippingFee)}</strong></div>
-          <div style={{ fontSize: 22, color: "#f97316", fontWeight: 800, letterSpacing: "-0.02em" }}>{usd(car.purchaseCost || car.totalLandedCost)}</div>
+          {car.isPriceAvailable ? (
+            <>
+              <div style={{ fontSize: 12, color: "#667085" }}>Vehicle Price (FOB): <strong style={{ color: "#101828" }}>{usd(car.priceChina)}</strong></div>
+              <div style={{ fontSize: 12, color: "#667085" }}>Shipping: <strong style={{ color: "#101828" }}>{usd(car.shippingFee)}</strong></div>
+              <div style={{ fontSize: 22, color: "#f97316", fontWeight: 800, letterSpacing: "-0.02em" }}>{usd(car.purchaseCost)}</div>
+            </>
+          ) : (
+            <div style={{ fontSize: 18, color: "#2563eb", fontWeight: 700, margin: "10px 0" }}>Request Price</div>
+          )}
         </div>
       </div>
     </div>
