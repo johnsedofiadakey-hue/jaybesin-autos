@@ -1,10 +1,4 @@
-import { 
-  Search, SlidersHorizontal, Home, CarFront, Tag, UserCircle2, 
-  Flame, ShieldCheck, Ship, Headphones, Star, ChevronLeft, 
-  ChevronRight, CheckCircle2, Clock, Globe, ArrowRight, Activity
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { VehicleCard } from "./VehicleCard";
+import { FilterConsole } from "./FilterConsole";
 
 export function MarketplaceHomepageLayout({
   hero,
@@ -31,93 +25,51 @@ export function MarketplaceHomepageLayout({
   const start = (pageNum - 1) * pageSize;
   const pageCars = filteredCars.slice(start, start + pageSize);
 
-  const [tIdx, setTIdx] = useState(0);
-  const tests = settings.testimonials || [];
-
-  useEffect(() => {
-    if (!tests.length) return;
-    const itv = setInterval(() => setTIdx(p => (p + 1) % tests.length), 5000);
-    return () => clearInterval(itv);
-  }, [tests.length]);
-
   return (
-    <div className="mk-wrap" style={{ background: 'var(--bg)', paddingTop: '100px' }}>
-      <div className="container" style={{ maxWidth: '1440px' }}>
+    <div className="mk-wrap" style={{ background: '#FFFFFF', paddingTop: '72px' }}>
+      <div className="container" style={{ maxWidth: '1200px', paddingInline: '16px' }}>
         
-        {/* Advanced Search & Filtering Console */}
-        <div style={{ marginBottom: '48px' }}>
-          <div className="section-label" style={{ marginBottom: '16px' }}>Filter Control Center</div>
-          <div className="mk-search-row">
-            <div className="mk-search-box">
-              <Search size={18} color="var(--text-dim)" />
-              <input 
-                placeholder="Search dossiers by brand, model or specification..." 
-                value={filters.q} 
-                onChange={(e) => update("q", e.target.value)} 
-                style={{ fontWeight: 600 }}
-              />
-            </div>
-            <button className={`mk-filter-btn ${showFilters ? 'active' : ''}`} onClick={() => setShowFilters((v) => !v)}>
-              <SlidersHorizontal size={18} /> <span>{showFilters ? 'Hide Protocols' : 'All Protocols'}</span>
-            </button>
-            <select className="mk-sort" value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPageNum(1); }}>
-              {Object.entries(sortOptions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-            </select>
-          </div>
-
-          {(showFilters || hero) && (
-            <div className="adm-card" style={{ padding: '24px', marginTop: '16px', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                <div className="fg"><label className="lbl">Brand Affinity</label><select className="inp" value={filters.brand} onChange={(e) => update("brand", e.target.value)}><option value="">Global Fleet</option>{options.brand.map((o) => <option key={o}>{o}</option>)}</select></div>
-                <div className="fg"><label className="lbl">Model Variant</label><select className="inp" value={filters.model} onChange={(e) => update("model", e.target.value)}><option value="">All Variants</option>{options.model.map((o) => <option key={o}>{o}</option>)}</select></div>
-                <div className="fg"><label className="lbl">Architecture</label><select className="inp" value={filters.bodyType} onChange={(e) => update("bodyType", e.target.value)}><option value="">Any Body Type</option>{options.bodyType.map((o) => <option key={o}>{o}</option>)}</select></div>
-                <div className="fg"><label className="lbl">Power Unit</label><select className="inp" value={filters.fuel} onChange={(e) => update("fuel", e.target.value)}><option value="">Any Energy</option>{options.fuel.map((o) => <option key={o}>{o}</option>)}</select></div>
-                <div className="fg"><label className="lbl">Minimum Year</label><input className="inp" placeholder="YYYY" value={filters.yearMin} onChange={(e) => update("yearMin", e.target.value)} /></div>
-                <div className="fg"><label className="lbl">Max Capital (USD)</label><input className="inp" placeholder="Target Price" value={filters.priceMax} onChange={(e) => update("priceMax", e.target.value)} /></div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button className="btn-sm-ghost" onClick={() => { Object.keys(filters).forEach(k => update(k, "")); setQuickTab("All Cars"); }}>
-                  System Reset
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Mobile Search & Filter Console */}
+        <FilterConsole 
+          filters={filters} 
+          update={update} 
+          resultCount={filteredCars.length} 
+        />
 
         {/* Global Inventory Grid */}
-        <div style={{ marginBottom: '64px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
-            <div>
-              <div className="section-label">Verified Marketplace</div>
-              <h2 style={{ fontSize: '28px', fontWeight: 800 }}>Search <span style={{ color: 'var(--accent)' }}>Results</span></h2>
-            </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase' }}>
-              Logged Entities: {filteredCars.length} Unit(s)
-            </div>
-          </div>
-
+        <div style={{ marginBottom: '64px', marginTop: '12px' }}>
           {pageCars.length === 0 ? (
-            <div style={{ padding: '100px 0', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
-              <Globe size={48} style={{ opacity: 0.1, marginBottom: '16px' }} />
-              <div style={{ fontSize: '16px', fontWeight: 700 }}>No Units Located</div>
-              <p style={{ opacity: 0.5, fontSize: '13px' }}>Adjust your filters to locate relevant vehicle dossiers.</p>
+            <div style={{ padding: '100px 0', textAlign: 'center', background: '#F5F5F7', borderRadius: '16px', border: '1px dashed #E8E8ED' }}>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#86868B' }}>No Units Located</div>
             </div>
           ) : (
             <div className="mk-grid">
               {pageCars.map((car, i) => (
-                <VehicleCard key={car.id} v={car} delay={i * 0.05} settings={settings} />
+                <div key={car.id} onClick={() => setPage(`car-${car.id}`)}>
+                  <VehicleCard v={car} delay={i * 0.03} settings={settings} />
+                </div>
               ))}
             </div>
           )}
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "48px", paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
-              <span style={{ fontSize: "11px", fontWeight: 800, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '1px' }}>Dossier {pageNum} of {totalPages}</span>
-              <div style={{ display: "flex", gap: "12px" }}>
-                <button className="btn-sm-ghost" disabled={pageNum <= 1} onClick={() => setPageNum((p) => Math.max(1, p - 1))}>Previous Batch</button>
-                <button className="btn-p" style={{ padding: '8px 24px', height: '40px' }} disabled={pageNum >= totalPages} onClick={() => setPageNum((p) => Math.min(totalPages, p + 1))}>Next Batch</button>
-              </div>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "32px", gap: '12px' }}>
+              <button 
+                className="pag-btn" 
+                disabled={pageNum <= 1} 
+                onClick={() => setPageNum((p) => Math.max(1, p - 1))}
+              >
+                Prev
+              </button>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#86868B' }}>Page {pageNum}/{totalPages}</div>
+              <button 
+                className="pag-btn act" 
+                disabled={pageNum >= totalPages} 
+                onClick={() => setPageNum((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
@@ -168,12 +120,32 @@ export function MarketplaceHomepageLayout({
         .mk-search-box input{border:0;outline:0;background:transparent;width:100%;font-size:14px;color:var(--text)}
         .mk-filter-btn,.mk-sort{height:52px;border:1px solid var(--border);background:var(--bg);border-radius:12px;padding:0 20px;font-size:13px;font-weight:700;color:var(--text-dim);display:flex;align-items:center;gap:8px;cursor:pointer}
         .mk-filter-btn.active{border-color:var(--accent);color:var(--text)}
-        .mk-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:24px}
+        
+        /* NEW MOBILE-FIRST GRID */
+        .mk-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          padding: 8px;
+        }
+        
+        @media (max-width: 480px) {
+          .mk-grid {
+            gap: 8px;
+            padding: 4px;
+          }
+        }
+        
+        @media (min-width: 981px) {
+          .mk-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+          }
+        }
         
         @media (max-width: 980px){
           .mk-search-row{grid-template-columns:1fr;gap:8px}
           .mk-filter-btn, .mk-sort{width:100%;justify-content:center}
-          .mk-grid{grid-template-columns:repeat(auto-fill, minmax(280px, 1fr))}
         }
       `}</style>
     </div>

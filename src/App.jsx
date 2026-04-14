@@ -12,6 +12,7 @@ import { Footer } from "./components/layout/Footer";
 import { AdminProtectedRoute } from "./components/auth/AdminProtectedRoute";
 import { AdminSidebar } from "./components/admin/AdminSidebar";
 import { InvoiceModal, VehicleModal } from "./components/admin/Modals";
+import { BottomTabNav } from "./components/marketplace/BottomTabNav";
 
 // Pages
 import { BrowsePage } from "./pages/BrowsePage";
@@ -400,6 +401,24 @@ export default function App() {
         />
       )}
 
+      {!isAdminPath && isMarketplaceSurface && (
+        <BottomTabNav 
+          activeTab={
+            location.pathname === "/" ? "home" : 
+            location.pathname.startsWith("/browse") ? "browse" :
+            location.pathname.startsWith("/sell") ? "sell" :
+            location.pathname.startsWith("/deals") ? "deals" :
+            location.pathname.startsWith("/admin") ? "account" : "home"
+          }
+          onTabChange={(tab) => {
+            if (tab === "home") navigate("/");
+            if (tab === "browse") navigate("/browse");
+            if (tab === "sell") navigate("/sell");
+            if (tab === "deals") navigate("/deals");
+            if (tab === "account") navigate("/admin/login");
+          }}
+        />
+      )}
       {!isAdminPath && !isMarketplaceSurface && <Footer onAdminClick={() => navigate("/admin")} settings={settings} />}
     </HelmetProvider>
   );

@@ -1,65 +1,98 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { Car, Zap, Wrench, Package, ArrowUpRight, ShieldCheck } from "lucide-react";
-import { fmtUSD } from "../../utils/theme";
+import { ShieldCheck, Flame, LucideZap } from "lucide-react";
 
-export function VehicleCard({ v, delay = 0, settings }) {
-  const isPremium = v.featured || v.tags?.includes("Verified");
-
-  function fuelTag(f) {
-    if (f === "Electric") return <span className="tag" style={{ border: '1px solid var(--accent)', color: 'var(--accent)' }}>EV PRO</span>;
-    if (f === "Hybrid") return <span className="tag">HYBRID</span>;
-    return <span className="tag">FUEL</span>;
-  }
-
-  function availTag(a) {
-    return a === "in_stock" 
-      ? <span className="tag" style={{ color: 'var(--accent)' }}>● IN STOCK</span> 
-      : <span className="tag" style={{ opacity: 0.5 }}>TRANSIT</span>;
-  }
+export function VehicleCard({ v, delay = 0, settings = {} }) {
+  const usd = (val) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
+  
+  // Logic for the price manifest as seen in the mockup
+  const fobPrice = v.priceChina || v.price || 0;
+  const shippingCharge = v.shippingFee || 3500;
+  const totalPurchase = (v.purchaseCost || (fobPrice + shippingCharge));
 
   return (
-    <div className="adm-card" style={{ padding: 0, overflow: 'hidden', transitionDelay: `${delay}s` }}>
-      <Link to={`/car/${v.id}`} style={{ display: 'block', position: 'relative', height: '220px', background: 'var(--bg-3)', overflow: 'hidden', textDecoration: 'none' }}>
-        {v.images && v.images[0] ? (
-          <img src={v.images[0]} alt={v.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    <div 
+      className="card-mobile rv on" 
+      style={{ 
+        animationDelay: `${delay}s`,
+        background: '#FFFFFF',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid #E8E8ED',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      {/* Image Sleeve with Badge */}
+      <div style={{ position: 'relative', aspectRatio: '4/3', width: '100%', overflow: 'hidden', background: '#F5F5F7' }}>
+        {v.images?.[0] ? (
+          <img 
+            src={v.images[0]} 
+            alt={v.brand} 
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.1 }}><Car size={48} /></div>
-        )}
-        
-        {isPremium && (
-          <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'var(--accent)', color: 'var(--bg)', padding: '4px 8px', borderRadius: '4px', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Verified Authentic
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
+            <LucideZap size={48} />
           </div>
         )}
-      </Link>
-
-      <div style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{v.brand}</div>
-            <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: 'Syne, sans-serif' }}>{v.model || v.name}</div>
-          </div>
-          <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--accent)' }}>{v.year}</div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-          {fuelTag(v.fuel)}
-          {availTag(v.availability)}
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '9px', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase' }}>FOB (China Source)</span>
-            <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)' }}>
-              {v.isPriceAvailable !== false ? fmtUSD(v.priceChina || v.price) : "Request Protocol"}
-            </span>
-          </div>
-          <Link to={`/car/${v.id}`} className="btn-sm-ghost" style={{ padding: '8px 12px' }}>
-            Inspect <ArrowUpRight size={14} />
-          </Link>
+        <div style={{ 
+          position: 'absolute', left: '8px', bottom: '8px', 
+          background: 'rgba(0,0,0,0.6)', color: '#FFF', 
+          fontSize: '11px', fontWeight: 700, padding: '4px 10px', 
+          borderRadius: '20px', backdropFilter: 'blur(4px)'
+        }}>
+          China
         </div>
       </div>
+
+      {/* Content Sleeve */}
+      <div style={{ padding: '12px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 4px', color: '#1D1D1F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {v.brand} {v.model}
+        </h3>
+        
+        <div style={{ fontSize: '13px', color: '#86868B', marginBottom: '12px', fontWeight: 500 }}>
+          {v.year} / {(v.mileage / 10000).toFixed(1)}万公里
+        </div>
+
+        <div style={{ display: 'grid', gap: '4px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#86868B', fontWeight: 600 }}>
+            <span>Vehicle Price (FOB):</span>
+            <span style={{ color: '#1D1D1F' }}>{usd(fobPrice)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#86868B', fontWeight: 600 }}>
+            <span>Shipping:</span>
+            <span style={{ color: '#1D1D1F' }}>{usd(shippingCharge)}</span>
+          </div>
+        </div>
+
+        <div style={{ 
+          fontSize: '24px', 
+          fontWeight: 900, 
+          color: '#FF6600', 
+          letterSpacing: '-1px',
+          marginTop: 'auto'
+        }}>
+          {usd(totalPurchase)}
+        </div>
+      </div>
+
+      <style>{`
+        .card-mobile {
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+          cursor: pointer;
+        }
+        .card-mobile:active {
+          transform: scale(0.97);
+        }
+        @media (min-width: 981px) {
+          .card-mobile:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+          }
+        }
+      `}</style>
     </div>
   );
 }
