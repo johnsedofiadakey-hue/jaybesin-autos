@@ -1,4 +1,5 @@
 import { FilterConsole } from "./FilterConsole";
+import { VehicleCard } from "./VehicleCard";
 
 export function MarketplaceHomepageLayout({
   hero,
