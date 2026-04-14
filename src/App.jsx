@@ -35,7 +35,6 @@ import { AdminChargingParts } from "./pages/AdminChargingParts";
 
 // Marketplace Components (Legacy)
 import { MarketplaceAccountPage, MarketplaceSimplePage } from "./marketplace";
-import { MarketplaceMobileNav } from "./components/marketplace/HomepageLayout";
 
 // Utils & Config
 import { 
@@ -401,20 +400,6 @@ export default function App() {
         />
       )}
 
-      {!isAdminPath && isMarketplaceSurface && (
-        <MarketplaceMobileNav 
-          setPage={(p) => {
-            if (p.startsWith("car-")) {
-              navigate("/car/" + p.replace("car-", ""));
-            } else if (p === "home") {
-              navigate("/");
-            } else {
-              navigate("/" + (p === "browse" ? "/" : p));
-            }
-          }} 
-          activePage={location.pathname === "/" ? "home" : location.pathname.slice(1)} 
-        />
-      )}
       {!isAdminPath && !isMarketplaceSurface && <Footer onAdminClick={() => navigate("/admin")} settings={settings} />}
     </HelmetProvider>
   );
