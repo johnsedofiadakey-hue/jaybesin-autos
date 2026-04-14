@@ -43,31 +43,14 @@ const toDoc = (doc, idx) => {
 };
 
 export const calcPurchaseCost = (car) => asNum(car.priceChina || car.price) + asNum(car.inspectionFee) + asNum(car.shippingFee);
-export const calcEstimatedLandedCost = (car) => calcPurchaseCost(car) + asNum(car.clearingEstimate || car.duties);
-
-const resolveTimeline = (settings = {}) => {
-  const rows = Array.isArray(settings.importTimeline) && settings.importTimeline.length
-    ? settings.importTimeline
-    : DEFAULT_TIMELINE;
-  const cleaned = rows
-    .map((r) => ({ step: String(r.step || "").trim(), days: asNum(r.days) }))
-    .filter((r) => r.step);
-  if (!cleaned.length) return DEFAULT_TIMELINE;
-  return cleaned;
-};
-
-const computeLeadDays = (settings = {}, timeline = []) => {
-  const n = asNum(settings.importLeadTimeDays);
-  if (n > 0) return n;
-  return timeline.reduce((sum, row) => sum + asNum(row.days), 0);
-};
+export const calcEstimatedLandedCost = (car) => calcPurchaseCost(car) + asNum(car.clearingEstimate);
 
 export const normalizeCar = (car = {}) => {
   const images = Array.isArray(car.images) ? car.images.filter(Boolean) : [];
   const documents = (Array.isArray(car.documents) ? car.documents : []).map(toDoc).filter((d) => d && d.url);
   const tags = Array.isArray(car.tags) ? car.tags.filter(Boolean) : [];
   const purchaseCost = asNum(car.purchaseCost) || calcPurchaseCost(car);
-  const estimatedLandedCost = asNum(car.estimatedLandedCost || car.totalLandedCost || car.totalGhana) || calcEstimatedLandedCost(car);
+  const estimatedLandedCost = asNum(car.estimatedLandedCost || car.totalLandedCost) || calcEstimatedLandedCost(car);
 
   return {
     ...car,
@@ -472,69 +455,89 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
 
   const submit = async () => {
     if (!form.name.trim() || !form.phone.trim()) {
-      setStatus("Please add your name and phone number.");
+      setStatus("Protocol Error: Identity and Contact Frequency required.");
       return;
     }
     setLoading(true);
     setStatus("");
     try {
       const leadMessage =
-        "Account Request\n" +
-        "Name: " + form.name.trim() + "\n" +
-        "Phone: " + form.phone.trim() + "\n" +
-        (form.email.trim() ? "Email: " + form.email.trim() + "\n" : "") +
-        (form.tracking.trim() ? "Tracking: " + form.tracking.trim() + "\n" : "") +
-        "Message: " + (form.message || "Customer account/support request");
+        "Jaybesin Protocol: Account Request\n" +
+        "Operator: " + form.name.trim() + "\n" +
+        "Frequency: " + form.phone.trim() + "\n" +
+        (form.email.trim() ? "Credential: " + form.email.trim() + "\n" : "") +
+        (form.tracking.trim() ? "Ref Target: " + form.tracking.trim() + "\n" : "") +
+        "Payload: " + (form.message || "Standard support request initiated.");
 
       await addInquiry({
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
-        subject: form.tracking ? "Account Tracking Request - " + form.tracking : "Account Request",
+        subject: form.tracking ? "Dossier Tracking - " + form.tracking : "Registry Enrollment",
         message: leadMessage,
         type: "account",
       });
 
-      const whatsappSent = sendLeadToWhatsApp(settings?.whatsapp, leadMessage);
-      setStatus(whatsappSent
-        ? "Request submitted and WhatsApp lead alert opened."
-        : "Request submitted. WhatsApp alert could not open on this device.");
+      sendLeadToWhatsApp(settings?.whatsapp, leadMessage);
+      setStatus("Transmission Logged. Protocol initiated.");
       setForm({ name: "", phone: "", email: "", tracking: "", message: "" });
     } catch (e) {
-      setStatus(`Could not submit now. Please try again or contact support. (${e.message})`);
+      setStatus(`Transmission Error: ${e.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ paddingTop: 72, maxWidth: 920, margin: "0 auto", paddingInline: 14, paddingBottom: 96 }}>
-      <button className="btn-sm btn-sm-ghost" onClick={() => setPage("home")}>← Back</button>
-      <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
-        <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 14 }}>
-          <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 24, color: "#101828", marginBottom: 4 }}>Account & Tracking</div>
-          <div style={{ color: "#667085", fontSize: 13 }}>Submit your details to track reservation/import requests and receive updates from Jaybesin Autos.</div>
+    <div className="sec" style={{ paddingTop: "100px", maxWidth: "1000px", margin: "0 auto", paddingInline: "20px" }}>
+      <button className="btn-sm-ghost" onClick={() => setPage("home")} style={{ marginBottom: '32px' }}>← Operational Home</button>
+      
+      <div className="adm-split" style={{ alignItems: 'start' }}>
+        <div className="adm-card" style={{ padding: '32px' }}>
+          <div className="section-label" style={{ marginBottom: '24px' }}>Registry Enrollment</div>
+          <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '16px' }}>Account & <span style={{ color: 'var(--accent)' }}>Tracking</span></h1>
+          <p style={{ color: 'var(--text-dim)', fontSize: '14px', lineHeight: 1.6 }}>
+            Initialize a tracking protocol for your vehicle imports. 
+            Logged users receive prioritized updates on port status and shipping logistics.
+          </p>
+          
+          <div style={{ marginTop: '32px', display: 'grid', gap: '16px' }}>
+            <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '12px' }}>
+              <strong>Sync Active:</strong> Real-time Firestore synchronization enabled for all verified accounts.
+            </div>
+          </div>
         </div>
 
-        <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 12, padding: 14 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <input className="inp" placeholder="Full name *" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-            <input className="inp" placeholder="Phone number *" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
-            <input className="inp" placeholder="Email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
-            <input className="inp" placeholder="Tracking number (optional)" value={form.tracking} onChange={(e) => setForm((f) => ({ ...f, tracking: e.target.value }))} />
+        <div className="adm-card" style={{ padding: '32px' }}>
+          <div className="section-label" style={{ marginBottom: '24px' }}>Submission Dossier</div>
+          
+          <div className="frow" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="fg"><label className="lbl">Identity</label><input className="inp" placeholder="Full Name *" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
+            <div className="fg"><label className="lbl">Frequency</label><input className="inp" placeholder="Phone *" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /></div>
           </div>
-          <textarea className="inp" rows={3} placeholder="What do you need help with?" style={{ marginTop: 8 }} value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-            <button className="btn-p" onClick={submit} disabled={loading}>{loading ? "Submitting..." : "Submit Request"}</button>
-            <button className="btn-o" onClick={() => setPage("browse")}><span>Browse Cars</span></button>
-            <button className="btn-sm btn-sm-neon" onClick={() => setPage("track")}>Track Existing Order</button>
-            <button className="btn-sm btn-sm-ghost" onClick={() => window.open(`https://wa.me/${(settings.whatsapp || "").replace(/\D/g, "")}`)}>WhatsApp</button>
+          
+          <div className="frow" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+            <div className="fg"><label className="lbl">Secure Email</label><input className="inp" placeholder="Optional" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} /></div>
+            <div className="fg"><label className="lbl">Tracking ID</label><input className="inp" placeholder="Optional" value={form.tracking} onChange={(e) => setForm((f) => ({ ...f, tracking: e.target.value }))} /></div>
           </div>
-          {status && <div style={{ marginTop: 8, fontSize: 12, color: "#344054" }}>{status}</div>}
+
+          <div className="fg" style={{ marginTop: '16px' }}>
+            <label className="lbl">Payload Description</label>
+            <textarea className="inp" rows={3} placeholder="How can our logistics team assist you?" value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', marginTop: '24px' }}>
+            <button className="btn-p" onClick={submit} disabled={loading} style={{ height: '48px', justifyContent: 'center' }}>
+              {loading ? "Transmitting..." : "Initialize Request"}
+            </button>
+            <button className="btn-sm-ghost" onClick={() => setPage("browse")} style={{ height: '48px', justifyContent: 'center' }}>
+              Browse Marketplace
+            </button>
+          </div>
+          
+          {status && <div style={{ marginTop: '16px', fontSize: '11px', fontWeight: 700, textAlign: 'center', color: status.includes('Error') ? '#FF4A5A' : 'var(--accent)' }}>{status}</div>}
         </div>
       </div>
-
-      <style>{`@media (max-width: 980px){div[style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr !important}}`}</style>
     </div>
   );
 }

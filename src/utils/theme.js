@@ -13,4 +13,3 @@ export const ha = (hex, a) => {
 };
 
 export const fmtUSD = (n) => n ? `$${Number(n).toLocaleString()}` : "Price on Request";
-export const fmtGHS = (n, rate) => n ? `GH₵ ${(n * rate).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "";

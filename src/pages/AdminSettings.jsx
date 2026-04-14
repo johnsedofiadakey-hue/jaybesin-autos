@@ -10,6 +10,7 @@ import { ColorPick } from "../components/common/ColorPick";
 import { ImgUp } from "../components/common/ImgUp";
 import { Tgl } from "../components/common/Tgl";
 import { PRESETS, DEFAULT_THEME } from "../constants";
+import { PRESETS, DEFAULT_THEME, SETTINGS0 } from "../constants";
 
 export function AdminSettings({ 
   settings = {}, 
@@ -57,7 +58,7 @@ export function AdminSettings({
         {/* ── THEME ── */}
         <div className="adm-card">
           <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "18px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Palette size={20} style={{ color: "var(--neon)" }} /> Theme & Colors
+            <Palette size={20} style={{ color: "var(--accent)" }} /> Theme & Colors
           </div>
 
           <div style={{ marginBottom: "24px" }}>
@@ -105,7 +106,7 @@ export function AdminSettings({
         <div className="adm-split">
           <div className="adm-card">
             <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "16px", marginBottom: "18px" }}>
-              <Building size={18} style={{ color: "var(--neon)" }} /> Brand Identity
+              <Building size={18} style={{ color: "var(--accent)" }} /> Brand Identity
             </div>
             <div className="fg">
               <label className="lbl">Company Name</label>
@@ -126,7 +127,7 @@ export function AdminSettings({
 
           <div className="adm-card">
             <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "16px", marginBottom: "18px" }}>
-              <Phone size={18} style={{ color: "var(--neon)" }} /> Contact Details
+              <Phone size={18} style={{ color: "var(--accent)" }} /> Contact Details
             </div>
             {[
               ["Email Address", "email"], 
@@ -142,31 +143,27 @@ export function AdminSettings({
           </div>
         </div>
 
-        {/* ── PRICING & BANKING ── */}
+        {/* ── PRICING & LOGISTICS ── */}
         <div className="adm-split">
           <div className="adm-card">
             <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "16px", marginBottom: "18px" }}>
-              <DollarSign size={18} style={{ color: "var(--neon)" }} /> Pricing Display
+              <DollarSign size={18} style={{ color: "var(--accent)" }} /> Financial Protocols
             </div>
             <div style={{ marginBottom: "20px" }}>
-              <Tgl on={editS.showPricesGlobal} onChange={() => setEditS({ ...editS, showPricesGlobal: !editS.showPricesGlobal })} label="Show prices globally" />
+              <Tgl on={editS.showPricesGlobal} onChange={() => setEditS({ ...editS, showPricesGlobal: !editS.showPricesGlobal })} label="Public Price Visibility" />
             </div>
-            <div style={{ marginBottom: "20px" }}>
-              <Tgl on={editS.showGhsPrice} onChange={() => setEditS({ ...editS, showGhsPrice: !editS.showGhsPrice })} label="Show GHS equivalent" />
-            </div>
-            <div className="fg">
-              <label className="lbl">USD → GHS Conversion Rate</label>
-              <input className="inp" type="number" step="0.1" value={editS.ghsRate} onChange={e => setEditS({ ...editS, ghsRate: parseFloat(e.target.value) })} />
+            <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '11px' }}>
+              <strong>Policy:</strong> Strict USD billing enforced. All GHS conversions have been deprecated from the public interface to ensure pricing integrity.
             </div>
           </div>
 
           <div className="adm-card">
             <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "16px", marginBottom: "18px" }}>
-              <ShieldCheck size={18} style={{ color: "var(--neon)" }} /> Bank & Payments
+              <ShieldCheck size={18} style={{ color: "var(--accent)" }} /> Settlement Details
             </div>
-            <div className="fg"><label className="lbl">Bank Name</label><input className="inp" value={editS.bankName} onChange={e => setEditS({ ...editS, bankName: e.target.value })} /></div>
-            <div className="fg"><label className="lbl">Account Name</label><input className="inp" value={editS.accName} onChange={e => setEditS({ ...editS, accName: e.target.value })} /></div>
-            <div className="fg"><label className="lbl">Account Number</label><input className="inp" value={editS.accNo} onChange={e => setEditS({ ...editS, accNo: e.target.value })} /></div>
+            <div className="fg"><label className="lbl">Financial Institution</label><input className="inp" value={editS.bankName} onChange={e => setEditS({ ...editS, bankName: e.target.value })} /></div>
+            <div className="fg"><label className="lbl">Beneficiary Identity</label><input className="inp" value={editS.accName} onChange={e => setEditS({ ...editS, accName: e.target.value })} /></div>
+            <div className="fg"><label className="lbl">Account Reference</label><input className="inp" value={editS.accNo} onChange={e => setEditS({ ...editS, accNo: e.target.value })} /></div>
           </div>
         </div>
       </main>

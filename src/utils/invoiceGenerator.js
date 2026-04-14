@@ -1,11 +1,9 @@
-import { fmtUSD, fmtGHS } from "./theme";
+import { fmtUSD } from "./theme";
 
 export function generateInvoiceHTML(order, settings, form) {
   const issueDate = new Date().toLocaleDateString('en-GB', { day: 'prev', month: 'long', year: 'numeric' });
   const dueDate = form.dueDate ? new Date(form.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : "-";
   const amount = parseFloat(form.amount || order.amount || 0);
-  const rate = settings.ghsRate || 16.2;
-  const ghsTotal = amount * rate;
 
   return `
 <!DOCTYPE html>
@@ -98,9 +96,6 @@ export function generateInvoiceHTML(order, settings, form) {
       <span>Total (USD)</span>
       <span>${fmtUSD(amount)}</span>
     </div>
-    <div class="total-row" style="color: #667085; font-size: 12px; margin-top: 4px;">
-      <span>GHS Equivalent</span>
-      <span>${fmtGHS(amount, rate)}</span>
     </div>
   </div>
 

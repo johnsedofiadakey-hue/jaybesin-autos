@@ -1,5 +1,9 @@
 import React from "react";
-import { FileText, Plus, Search, Printer, Download, User, Ship, Package, DollarSign } from "lucide-react";
+import { 
+  FileText, Plus, Search, Printer, Download, User, 
+  Ship, Package, DollarSign, ArrowRight, FilePlus2,
+  Hash, ClipboardCheck
+} from "lucide-react";
 import { AdminHeader } from "../components/admin/AdminHeader";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { fmtUSD } from "../utils/theme";
@@ -19,56 +23,76 @@ export function AdminInvoices({
       
       <main className="adm-main">
         <AdminHeader 
-          title="Invoices & Documents" 
+          title="Document & Invoice Manifest" 
           icon={FileText} 
-          onAction={() => onGenerateInvoice(null)}
-          actionLabel="Create Global Invoice"
         />
 
-        <div style={{ display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap" }}>
+        {/* Global Action Strip */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
           {["Commercial Invoice", "Pro-Forma", "Customs Declaration", "Bill of Lading"].map(d => (
             <button 
               key={d} 
-              className="btn-sm btn-sm-ghost" 
+              className="btn-p" 
+              style={{ padding: '10px 18px', fontSize: '12px', height: '44px' }}
               onClick={() => onGenerateInvoice(null, d)}
             >
-              <Plus size={12} /> {d}
+              <FilePlus2 size={16} /> {d}
             </button>
           ))}
         </div>
 
-        <div className="adm-card">
+        <div className="adm-card" style={{ padding: '0', overflow: 'hidden' }}>
+          <div className="section-label" style={{ padding: '24px 24px 0' }}>Manifest Registry</div>
           <div className="adm-table-wrap">
             <table className="adm-table">
               <thead>
                 <tr>
-                  <th>Invoice #</th>
-                  <th>Order Ref</th>
-                  <th>Customer</th>
-                  <th>Amount</th>
-                  <th>Due Date</th>
-                  <th>Action</th>
+                  <th>Identity Token</th>
+                  <th>Order Reference</th>
+                  <th>Consignee</th>
+                  <th>Valuation</th>
+                  <th>Status / Due</th>
+                  <th style={{ textAlign: 'right' }}>Execution</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((o, i) => { 
                   const no = invoiceNoFor(o, i); 
+                  const hasInvoice = !!o.invoice;
                   return (
                     <tr key={o.id}>
-                      <td style={{ color: "var(--neon)", fontFamily: "monospace", fontWeight: 700 }}>{no}</td>
-                      <td style={{ fontSize: "11px", color: "var(--text3)" }}>{o.id}</td>
-                      <td style={{ color: "var(--text)", fontWeight: 600 }}>{o.customer}</td>
-                      <td style={{ color: "var(--neon2)", fontWeight: 800 }}>{fmtUSD(o.invoice?.amount ?? o.amount)}</td>
-                      <td>{o.invoice?.dueDate || "-"}</td>
-                      <td style={{ display: "flex", gap: "8px" }}>
-                        {o.invoice ? (
-                          <>
-                            <button className="btn-sm btn-sm-neon" onClick={() => onOpenInvoice(o, i, false)}>View</button>
-                            <button className="btn-sm btn-sm-ghost" onClick={() => onOpenInvoice(o, i, true)}><Printer size={12} /></button>
-                          </>
-                        ) : (
-                          <button className="btn-sm btn-sm-ghost" onClick={() => onGenerateInvoice(o.id)}>Generate</button>
-                        )}
+                      <td style={{ fontWeight: 800, color: 'var(--text)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Hash size={14} style={{ opacity: 0.3 }} /> {no}
+                        </div>
+                      </td>
+                      <td style={{ fontSize: '11px', fontWeight: 600, opacity: 0.5 }}>{o.id}</td>
+                      <td style={{ fontWeight: 700 }}>{o.customer}</td>
+                      <td style={{ fontWeight: 800, color: 'var(--accent)' }}>{fmtUSD(o.invoice?.amount ?? o.amount)}</td>
+                      <td>
+                        <span style={{ 
+                          fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
+                          padding: '4px 8px', borderRadius: '4px',
+                          background: hasInvoice ? 'rgba(255,255,255,0.05)' : 'transparent',
+                          border: `1px solid ${hasInvoice ? 'var(--border)' : 'transparent'}`,
+                          color: hasInvoice ? 'var(--text)' : 'var(--text-dim)'
+                        }}>
+                          {o.invoice?.dueDate || "UNSET"}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                          {hasInvoice ? (
+                            <>
+                              <button className="btn-p" style={{ padding: '6px 12px', fontSize: '11px' }} onClick={() => onOpenInvoice(o, i, false)}>View Dossier</button>
+                              <button className="btn-sm-ghost" style={{ padding: '6px 10px' }} onClick={() => onOpenInvoice(o, i, true)}><Printer size={14} /></button>
+                            </>
+                          ) : (
+                            <button className="btn-sm-ghost" style={{ padding: '6px 12px', fontSize: '11px' }} onClick={() => onGenerateInvoice(o.id)}>
+                              Generate Protocol
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ); 
@@ -78,8 +102,10 @@ export function AdminInvoices({
           </div>
           
           {orders.length === 0 && (
-            <div style={{ textAlign: "center", padding: "40px", opacity: 0.5 }}>
-              No orders found to generate invoices.
+            <div style={{ textAlign: "center", padding: "80px 40px", background: 'rgba(255,255,255,0.01)' }}>
+              <div style={{ opacity: 0.1, marginBottom: '16px' }}><ClipboardCheck size={48} /></div>
+              <div style={{ fontSize: "14px", color: "var(--text-dim)", fontWeight: 600 }}>Zero Transactional Data</div>
+              <p style={{ opacity: 0.4, fontSize: '12px', marginTop: '4px' }}>Invoices will populate as orders are logged into the system.</p>
             </div>
           )}
         </div>

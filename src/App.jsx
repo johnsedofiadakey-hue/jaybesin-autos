@@ -54,34 +54,9 @@ import {
 import "./index.css";
 import { generateInvoiceHTML } from "./utils/invoiceGenerator";
 
-const ThemeInjector = ({ theme: t = DEFAULT_THEME }) => {
-  useEffect(() => {
-    const ha = (hex, a) => {
-      if (!hex || hex.length < 7) return `rgba(0,0,0,${a})`;
-      const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r},${g},${b},${a})`;
-    };
-
-    const s = `
-      :root {
-        --neon:${t.accent1};--neon2:${t.accent2};--orange:${t.accent3};--purple:${t.accent4};
-        --bg:${t.bgPrimary};--bg2:${t.bgSecondary};--bg3:${t.bgTertiary};--bg4:${t.bgInput};--card:${t.bgCard};
-        --text:${t.textPrimary};--text2:${t.textSecondary};--text3:${t.textMuted};
-        --border:${ha(t.borderHex, 0.6)};--border2:${ha(t.borderHex, 0.35)};
-        --nav-bg:${t.navBg};--footer-bg:${t.footerBg};--btn-text:${t.btnText};
-        --grad-neon:linear-gradient(135deg,${t.accent1},${t.accent2});
-        --grad-orange:linear-gradient(135deg,${t.accent3},${t.accent1});
-        --grad-purple:linear-gradient(135deg,${t.accent4},${t.accent2});
-        --grad-card:linear-gradient(135deg,${ha(t.accent1, .04)},${ha(t.accent2, .02)});
-      }
-    `;
-    let el = document.getElementById("theme-vars");
-    if (!el) { el = document.createElement("style"); el.id = "theme-vars"; document.head.appendChild(el); }
-    el.textContent = s;
-  }, [t]);
-  return null;
-};
-
+// ─────────────────────────────────────────────────────────────────
+// Primary Application Component
+// ─────────────────────────────────────────────────────────────────
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,13 +65,15 @@ export default function App() {
   const [annVisible, setAnnVisible] = useState(true);
 
   // ── Data state ──
-  const [vehicles, setVehicles] = useState(VEHICLES0);
+  const [vehicles, setVehicles] = useState([]);
   const [cars, setCars] = useState([]);
-  const [charging, setCharging] = useState(CHARGING0);
-  const [parts, setParts] = useState(PARTS0);
-  const [orders, setOrders] = useState(ORDERS0);
-  const [inquiries, setInquiries] = useState(INQUIRIES0);
-  const [settings, setSettings] = useState(SETTINGS0);
+  const [charging, setCharging] = useState([]);
+  const [parts, setParts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
+  const [settings, setSettings] = useState({ 
+    ...SETTINGS0
+  });
 
   // ── Modal States ──
   const [activeOrder, setActiveOrder] = useState(null); 
@@ -293,7 +270,6 @@ export default function App() {
 
   return (
     <HelmetProvider>
-      <ThemeInjector theme={settings.theme || DEFAULT_THEME} />
       <Cursor />
       <div className="grain" />
       
