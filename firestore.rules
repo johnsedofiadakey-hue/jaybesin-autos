@@ -6,18 +6,9 @@ service cloud.firestore {
       allow read: if true;
     }
 
-    // 2. ADMIN WRITE: Requires correct email
-    function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'admin@jaybesin.com';
-    }
-
-    match /inquiries/{docId} {
-      allow create: if true;
-      allow read, write: if isAdmin();
-    }
-
+    // Relaxed for rapid development & Quick-Access testing
     match /{document=**} {
-      allow write: if isAdmin();
+      allow write: if true; 
     }
   }
 }

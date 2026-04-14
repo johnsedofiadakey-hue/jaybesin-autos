@@ -45,6 +45,12 @@ const toDoc = (doc, idx) => {
 export const calcPurchaseCost = (car) => asNum(car.priceChina || car.price) + asNum(car.inspectionFee) + asNum(car.shippingFee);
 export const calcEstimatedLandedCost = (car) => calcPurchaseCost(car) + asNum(car.clearingEstimate);
 
+export const resolveTimeline = (settings) => (Array.isArray(settings?.importTimeline) && settings.importTimeline.length) ? settings.importTimeline : DEFAULT_TIMELINE;
+export const computeLeadDays = (settings, timeline) => {
+  const base = (timeline || resolveTimeline(settings)).reduce((sum, step) => sum + (asNum(step.days)), 0);
+  return base || asNum(settings?.importLeadTimeDays) || 45;
+};
+
 export const normalizeCar = (car = {}) => {
   const images = Array.isArray(car.images) ? car.images.filter(Boolean) : [];
   const documents = (Array.isArray(car.documents) ? car.documents : []).map(toDoc).filter((d) => d && d.url);
@@ -564,7 +570,7 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
   );
 }
 
-export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = DEFAULT_TIMELINE, importLeadTimeDays = 45, onImportTimelineChange, onImportLeadTimeChange, onSaveTimeline }) {
+export function MarketplaceAdminTab({ cars, onSaveCar, onDeleteCar, saving, importTimeline = DEFAULT_TIMELINE, importLeadTimeDays = 45, onImportTimelineChange, onImportLeadTimeChange, onSaveTimeline }) {
   const blankForm = { id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", images: [], documents: [], description: "", locationChina: "", tagsText: "", isFeatured: false, isSpecial: false, isAvailableInGhana: false };
   const [form, setForm] = useState(blankForm);
   const [editingId, setEditingId] = useState("");
@@ -629,8 +635,15 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
   };
 
   const clearEditor = () => {
-    setEditingId("");
+    if (onSaveCar) onSaveCar(fullForm);
     setForm(blankForm);
+    setEditingId("");
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to permanently delete this vehicle from the registry?")) {
+      if (onDeleteCar) onDeleteCar(id);
+    }
   };
 
   const loadCarIntoForm = (row) => {
@@ -875,6 +888,13 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button className="btn-sm btn-sm-neon" onClick={() => loadCarIntoForm(c)}>Edit</button>
+                    <button 
+                      className="btn-sm" 
+                      onClick={() => handleDelete(c.id)}
+                      style={{ background: "rgba(255,74,90,0.05)", border: "1px solid #FF4A5A", color: "#FF4A5A" }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
 

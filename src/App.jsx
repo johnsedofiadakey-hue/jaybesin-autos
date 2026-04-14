@@ -33,6 +33,7 @@ import { AdminInvoices } from "./pages/AdminInvoices";
 import { AdminSettings } from "./pages/AdminSettings";
 import { AdminMarketplace } from "./pages/AdminMarketplace";
 import { AdminChargingParts } from "./pages/AdminChargingParts";
+import { AdminMobileNav } from "./components/admin/AdminMobileNav";
 
 // Marketplace Components (Legacy)
 import { MarketplaceAccountPage, MarketplaceSimplePage } from "./marketplace";
@@ -286,7 +287,7 @@ export default function App() {
           <Route path="/deals" element={<DealsPage marketplaceCars={cars} settings={settings} />} />
           <Route path="/track" element={<TrackingPage orders={orders} />} />
           
-          <Route path="/car/:id" element={<CarDetailPage marketplaceCars={cars} settings={settings} />} />
+          <Route path="/car/:id" element={<CarDetailPage marketplaceCars={marketplaceCars} settings={settings} />} />
           <Route path="/garage" element={<GaragePage vehicles={vehicles} settings={settings} />} />
           <Route path="/charging" element={<ChargingPage charging={charging} />} />
           <Route path="/parts" element={<PartsPage parts={parts} />} />
@@ -347,10 +348,20 @@ export default function App() {
           <Route path="/admin/marketplace" element={
             <AdminProtectedRoute loading={!fbReady}>
               <AdminMarketplace 
-                cars={marketplaceCars} onSaveCar={saveCar} settings={settings} onLogout={handleLogout}
+                cars={marketplaceCars} onSaveCar={saveCar} onDeleteCar={deleteCar} settings={settings} onLogout={handleLogout}
                 onImportTimelineChange={(t) => handleSaveSettings({...settings, importTimeline: t})}
                 onImportLeadTimeChange={(l) => handleSaveSettings({...settings, importLeadTimeDays: l})}
                 onSaveTimeline={(t) => handleSaveSettings({...settings, importTimeline: t})}
+              />
+            </AdminProtectedRoute>
+          } />
+
+          <Route path="/admin/infrastructure" element={
+            <AdminProtectedRoute loading={!fbReady}>
+              <AdminChargingParts 
+                charging={charging} parts={parts} settings={settings} onLogout={handleLogout}
+                onSaveCharger={saveCharger} onDeleteCharger={deleteCharger}
+                onSavePart={savePart} onDeletePart={deletePart}
               />
             </AdminProtectedRoute>
           } />
@@ -369,7 +380,12 @@ export default function App() {
         <VehicleModal 
           vehicle={typeof activeVehicle === "object" ? activeVehicle : null} 
           onSave={handleSaveVehicleWithUpload} onClose={() => setActiveVehicle(null)} 
+          cars={marketplaceCars}
         />
+      )}
+
+      {isAdminPath && loggedIn && location.pathname !== "/admin/login" && (
+        <AdminMobileNav />
       )}
 
       {!isAdminPath && (

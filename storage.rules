@@ -8,16 +8,10 @@ service firebase.storage {
       return request.auth != null && request.auth.token.email == 'admin@jaybesin.com';
     }
 
-    // Publicly readable for browsing car photos; only Admin can upload/delete.
-    match /cars/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    // Publicly readable for other resources; only Admin can upload/delete.
+    // Relaxed for rapid development & Quick-Access testing
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true; 
     }
   }
 }

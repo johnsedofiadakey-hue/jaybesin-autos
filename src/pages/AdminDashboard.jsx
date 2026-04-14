@@ -93,7 +93,7 @@ export function AdminDashboard({
         {/* Global Configuration Info */}
         <div className="adm-card" style={{ marginTop: '16px' }}>
           <h3>Global Protocol Settings</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '20px', marginTop: '16px' }}>
             <div>
               <div className="dc-lbl" style={{ marginBottom: '4px' }}>Base Currency</div>
               <div style={{ fontSize: '14px', fontWeight: 700 }}>USD (Strict)</div>

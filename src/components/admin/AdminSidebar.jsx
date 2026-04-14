@@ -14,6 +14,7 @@ export function AdminSidebar({ onLogout, settings = {} }) {
     { label: "Oversight", path: "/admin", icon: LayoutDashboard },
     { label: "Manage Fleet", path: "/admin/marketplace", icon: Car },
     { label: "Orders & Tracking", path: "/admin/orders", icon: Ship },
+    { label: "Spare Parts & Charging", path: "/admin/infrastructure", icon: Zap },
     { label: "Customer Inquiries", path: "/admin/inquiries", icon: MessageCircle },
     { label: "Invoices", path: "/admin/invoices", icon: FileText },
     { label: "Global Settings", path: "/admin/settings", icon: Settings },

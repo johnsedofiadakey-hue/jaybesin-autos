@@ -7,6 +7,7 @@ import { MarketplaceAdminTab } from "../marketplace";
 export function AdminMarketplace({ 
   cars = [], 
   onSaveCar, 
+  onDeleteCar,
   onLogout, 
   settings = {},
   onImportTimelineChange,
@@ -24,6 +25,7 @@ export function AdminMarketplace({
           <MarketplaceAdminTab 
             cars={cars} 
             onSaveCar={onSaveCar}
+            onDeleteCar={onDeleteCar}
             importTimeline={settings.importTimeline}
             importLeadTimeDays={settings.importLeadTimeDays}
             onImportTimelineChange={onImportTimelineChange}
