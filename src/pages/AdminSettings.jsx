@@ -9,7 +9,6 @@ import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { ColorPick } from "../components/common/ColorPick";
 import { ImgUp } from "../components/common/ImgUp";
 import { Tgl } from "../components/common/Tgl";
-import { PRESETS, DEFAULT_THEME } from "../constants";
 import { PRESETS, DEFAULT_THEME, SETTINGS0 } from "../constants";
 
 export function AdminSettings({ 
