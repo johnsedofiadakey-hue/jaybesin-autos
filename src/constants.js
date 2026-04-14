@@ -66,7 +66,7 @@ export const SETTINGS0 = {
   importLeadTimeDays: 44,
   annBarText: "🚗 Now taking Pre-Orders for 2025 — Limited slots available. ", 
   annBarLink: "", 
-  annBarOn: true,
+  annBarOn: false,
   heroSlides: [{ id: 1, image: null, label: "Welcome to Jaybesin Autos" }],
   theme: DEFAULT_THEME,
   testimonials: [

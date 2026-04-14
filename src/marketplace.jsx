@@ -542,7 +542,7 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
 }
 
 export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = DEFAULT_TIMELINE, importLeadTimeDays = 45, onImportTimelineChange, onImportLeadTimeChange, onSaveTimeline }) {
-  const blankForm = { id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", imagesText: "", documentsText: "", description: "", locationChina: "", tagsText: "" };
+  const blankForm = { id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", imagesText: "", documentsText: "", description: "", locationChina: "", tagsText: "", isFeatured: false, isSpecial: false };
   const [form, setForm] = useState(blankForm);
   const [editingId, setEditingId] = useState("");
 
@@ -598,6 +598,8 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
       description: c.description || "",
       locationChina: c.locationChina || "",
       tagsText: (c.tags || []).join(", "),
+      isFeatured: !!c.isFeatured,
+      isSpecial: !!c.isSpecial,
     });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -629,7 +631,9 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
       documents,
       description: form.description,
       locationChina: form.locationChina,
-      tags,
+      tags: tags,
+      isFeatured: !!form.isFeatured,
+      isSpecial: !!form.isSpecial,
       dateAdded: new Date().toISOString(),
     });
 
@@ -706,6 +710,16 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
           <div className="fg"><label className="lbl">transmission</label><select className="inp" value={form.transmission} onChange={(e) => setForm((f) => ({ ...f, transmission: e.target.value }))}><option>Automatic</option><option>Manual</option></select></div>
           <div className="fg"><label className="lbl">bodyType</label><select className="inp" value={form.bodyType} onChange={(e) => setForm((f) => ({ ...f, bodyType: e.target.value }))}><option>SUV</option><option>Sedan</option><option>Pickup</option><option>Truck</option><option>Hatchback</option></select></div>
           <div className="fg"><label className="lbl">tags (comma)</label><input className="inp" value={form.tagsText} onChange={(e) => setForm((f) => ({ ...f, tagsText: e.target.value }))} placeholder="hot, verified, new" /></div>
+          <div className="fg" style={{ display: "flex", gap: 20, alignItems: "center", paddingTop: 20 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} /> 
+              Feature on Homepage
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <input type="checkbox" checked={form.isSpecial} onChange={(e) => setForm((f) => ({ ...f, isSpecial: e.target.checked }))} /> 
+              Mark as Special Deal
+            </label>
+          </div>
         </div>
 
         <div className="fg"><label className="lbl">description</label><textarea className="inp" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></div>

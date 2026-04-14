@@ -64,9 +64,24 @@ export function Footer({ onAdminClick, settings = {} }) {
           </div>
         </div>
       </div>
-      <div className="footer-bot">
-        <div className="footer-copy">© {year} {settings.companyName || "Jaybesin Autos"}. All rights reserved. Professional Vehicle Procurement.</div>
-        <button className="admin-ghost" onClick={onAdminClick}>⬡ Systems Admin</button>
+      <div className="footer-bot" style={{ paddingTop: '40px', borderTop: '1px solid var(--border)', marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '13px', color: 'var(--text-dim)' }}>
+          © {year} {settings.companyName || "Jaybesin Autos"}. All rights reserved.
+        </div>
+        <button 
+          onClick={onAdminClick} 
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            color: 'var(--text)', 
+            opacity: 0.15, 
+            fontSize: '10px', 
+            cursor: 'pointer',
+            padding: '4px'
+          }}
+        >
+          Systems Access
+        </button>
       </div>
     </footer>
   );

@@ -15,7 +15,9 @@ import { InvoiceModal, VehicleModal } from "./components/admin/Modals";
 import { BottomTabNav } from "./components/marketplace/BottomTabNav";
 
 // Pages
+import { HomePage } from "./pages/HomePage";
 import { BrowsePage } from "./pages/BrowsePage";
+import { DealsPage } from "./pages/DealsPage";
 import { CarDetailPage } from "./pages/CarDetailPage";
 import { GaragePage } from "./pages/GaragePage";
 import { ChargingPage } from "./pages/ChargingPage";
@@ -291,17 +293,18 @@ export default function App() {
         paddingBottom: (isMarketplaceSurface && !isAdminPath) ? "80px" : 0
       }}>
         <Routes>
-          <Route path="/" element={<BrowsePage marketplaceCars={marketplaceCars} settings={settings} />} />
-          <Route path="/browse" element={<BrowsePage marketplaceCars={marketplaceCars} settings={settings} />} />
-          <Route path="/car/:id" element={<CarDetailPage marketplaceCars={marketplaceCars} settings={settings} />} />
+          <Route path="/" element={<HomePage marketplaceCars={cars} settings={settings} />} />
+          <Route path="/browse" element={<BrowsePage marketplaceCars={cars} settings={settings} />} />
+          <Route path="/deals" element={<DealsPage marketplaceCars={cars} settings={settings} />} />
+          <Route path="/track" element={<TrackingPage orders={orders} />} />
+          
+          <Route path="/car/:id" element={<CarDetailPage marketplaceCars={cars} settings={settings} />} />
           <Route path="/garage" element={<GaragePage vehicles={vehicles} settings={settings} />} />
           <Route path="/charging" element={<ChargingPage charging={charging} />} />
           <Route path="/parts" element={<PartsPage parts={parts} />} />
-          <Route path="/track" element={<TrackingPage orders={orders} />} />
           <Route path="/contact" element={<ContactPage settings={settings} />} />
-          
-          <Route path="/import" element={<MarketplaceSimplePage title="Import From China" subtitle="Tell us your preferred brand, model, and budget." ctaLabel="Start Request" onCta={() => navigate("/contact")} onBack={() => navigate("/")} />} />
-          <Route path="/sell" element={<MarketplaceSimplePage title="Sell Car" subtitle="List your car with Jaybesin Autos." ctaLabel="List My Car" onCta={() => navigate("/contact")} onBack={() => navigate("/")} />} />
+          <Route path="/sell" element={<MarketplaceSimplePage title="Sell Your Unit" subtitle="Submit your vehicle credentials for terminal valuation and market placement." ctaLabel="Initiate Sourcing" onCta={() => navigate("/contact")} onBack={() => navigate("/")} />} />
+          <Route path="/import" element={<MarketplaceSimplePage title="Bespoke Import Pipeline" subtitle="Request a specialized acquisition dossier for any vehicle model globally." ctaLabel="Initiate Procurement" onCta={() => navigate("/contact")} onBack={() => navigate("/")} />} />
           <Route path="/account" element={<MarketplaceAccountPage settings={settings} setPage={(p) => navigate(`/${p}`)} />} />
 
           <Route path="/admin/login" element={<AdminLogin onLogin={() => navigate("/admin")} onBack={() => navigate("/")} />} />
@@ -405,11 +408,11 @@ export default function App() {
         <BottomTabNav 
           activeTab={
             location.pathname === "/" ? "home" : 
-            location.pathname.startsWith("/car/") ? "browse" :
             location.pathname.startsWith("/browse") ? "browse" :
             location.pathname.startsWith("/sell") ? "sell" :
             location.pathname.startsWith("/deals") ? "deals" :
-            location.pathname.startsWith("/admin") ? "account" : 
+            location.pathname.startsWith("/track") ? "track" :
+            location.pathname.startsWith("/admin") ? "track" : 
             location.pathname.replace("/", "")
           }
           onTabChange={(tab) => {
@@ -417,7 +420,7 @@ export default function App() {
             if (tab === "browse") navigate("/browse");
             if (tab === "sell") navigate("/sell");
             if (tab === "deals") navigate("/deals");
-            if (tab === "account") navigate("/admin/login");
+            if (tab === "track") navigate("/track");
             else navigate(`/${tab}`);
           }}
         />

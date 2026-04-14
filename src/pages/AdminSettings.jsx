@@ -101,6 +101,40 @@ export function AdminSettings({
           ))}
         </div>
 
+        {/* ── HOME PAGE CONFIG ── */}
+        <div className="adm-card">
+          <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: "16px", marginBottom: "18px" }}>
+            <Globe size={18} style={{ color: "var(--accent)" }} /> Homepage Configuration
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+            <div>
+              <div className="fg">
+                <label className="lbl">Main Hero Heading</label>
+                <input className="inp" value={editS.heroTitle || "Find Your Dream Import"} onChange={e => setEditS({ ...editS, heroTitle: e.target.value })} />
+              </div>
+              <div className="fg">
+                <label className="lbl">Hero Subtitle</label>
+                <textarea className="inp" rows={2} value={editS.heroSubtitle || "The most entertaining and professional way to buy cars from China."} onChange={e => setEditS({ ...editS, heroSubtitle: e.target.value })} />
+              </div>
+              <div style={{ marginTop: "10px" }}>
+                <Tgl on={editS.annBarOn} onChange={() => setEditS({ ...editS, annBarOn: !editS.annBarOn })} label="Show Top Announcement Bar" />
+              </div>
+            </div>
+            <div>
+              <ImgUp 
+                label="Hero Background Image" 
+                images={editS.heroBg ? [editS.heroBg] : []} 
+                onChange={imgs => setEditS({ ...editS, heroBg: Array.isArray(imgs) ? (imgs[0] || null) : imgs })} 
+                single 
+              />
+              <div className="fg" style={{ marginTop: "12px" }}>
+                <label className="lbl">Announcement Text</label>
+                <input className="inp" value={editS.annBarText} onChange={e => setEditS({ ...editS, annBarText: e.target.value })} />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* ── BRANDING ── */}
         <div className="adm-split">
           <div className="adm-card">

@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Search, Tag, Flame, UserCircle2 } from "lucide-react";
+import { Home, Search, Tag, Flame, MapPin } from "lucide-react";
 
 export function BottomTabNav({ activeTab, onTabChange }) {
   const tabs = [
@@ -7,7 +7,7 @@ export function BottomTabNav({ activeTab, onTabChange }) {
     { id: "browse", label: "Buy", icon: Search },
     { id: "sell", label: "Sell", icon: Tag },
     { id: "deals", label: "Deals", icon: Flame },
-    { id: "account", label: "Account", icon: UserCircle2 },
+    { id: "track", label: "Track", icon: MapPin },
   ];
 
   return (
