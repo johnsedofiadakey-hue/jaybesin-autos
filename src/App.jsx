@@ -401,14 +401,16 @@ export default function App() {
         />
       )}
 
-      {!isAdminPath && isMarketplaceSurface && (
+      {!isAdminPath && (
         <BottomTabNav 
           activeTab={
             location.pathname === "/" ? "home" : 
+            location.pathname.startsWith("/car/") ? "browse" :
             location.pathname.startsWith("/browse") ? "browse" :
             location.pathname.startsWith("/sell") ? "sell" :
             location.pathname.startsWith("/deals") ? "deals" :
-            location.pathname.startsWith("/admin") ? "account" : "home"
+            location.pathname.startsWith("/admin") ? "account" : 
+            location.pathname.replace("/", "")
           }
           onTabChange={(tab) => {
             if (tab === "home") navigate("/");
@@ -416,6 +418,7 @@ export default function App() {
             if (tab === "sell") navigate("/sell");
             if (tab === "deals") navigate("/deals");
             if (tab === "account") navigate("/admin/login");
+            else navigate(`/${tab}`);
           }}
         />
       )}

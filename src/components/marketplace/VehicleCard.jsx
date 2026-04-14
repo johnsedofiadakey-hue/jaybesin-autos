@@ -70,7 +70,7 @@ export function VehicleCard({ v, delay = 0, settings = {} }) {
         <div style={{ 
           fontSize: '24px', 
           fontWeight: 900, 
-          color: '#FF6600', 
+          color: 'var(--accent)', 
           letterSpacing: '-1px',
           marginTop: 'auto'
         }}>
@@ -87,10 +87,15 @@ export function VehicleCard({ v, delay = 0, settings = {} }) {
           transform: scale(0.97);
         }
         @media (min-width: 981px) {
-          .card-mobile:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-          }
+          .inp-mobile:focus {
+          background: #FFFFFF;
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+  }
+        .card-mobile:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.08);
         }
       `}</style>
     </div>

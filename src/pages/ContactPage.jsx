@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Phone, MapPin, Send, MessageSquare, Clock, Globe, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Clock, MessageSquare, ArrowRight } from "lucide-react";
 import { addInquiry } from "../firestore";
 
 export function ContactPage({ settings = {} }) {
@@ -21,129 +21,144 @@ export function ContactPage({ settings = {} }) {
       setForm({ name: "", email: "", phone: "", subject: "General Inquiry", message: "" });
     } catch (err) {
       console.error(err);
-      alert("Failed to send inquiry. Please try again.");
+      alert("Failed to send message. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="sec" style={{ paddingTop: "140px", background: 'var(--bg)' }}>
-      <div className="container">
-        <div style={{ maxWidth: '800px', marginBottom: '80px' }}>
-          <div className="section-label">Consultation Cluster</div>
-          <h1 style={{ fontSize: 'clamp(32px, 5vw, 64px)', fontWeight: 800, letterSpacing: '-2px', marginBottom: '24px' }}>
-            Elevate Your <span style={{ color: 'var(--accent)' }}>Fleet</span>
+    <div className="sec" style={{ paddingTop: "140px", background: "var(--bg)", minHeight: "100vh" }}>
+      <div className="container" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
+        <div style={{ maxWidth: "800px", marginBottom: "60px" }}>
+          <div className="sec-chip" style={{ background: "var(--accent-dim)", color: "var(--accent)" }}>Contact Us</div>
+          <h1 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "20px", color: "var(--text)" }}>
+            Let's Start a <span style={{ color: "var(--accent)" }}>Conversation</span>
           </h1>
-          <p style={{ fontSize: '18px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
-            Whether you're looking for a single unit or building a logistics pipeline from China, 
-            our verified supply chain ensures absolute quality.
+          <p style={{ fontSize: "18px", color: "var(--text-dim)", lineHeight: 1.6 }}>
+            Whether you have a specific vehicle in mind or need expert advice on imports, 
+            our team is here to help you every step of the way.
           </p>
         </div>
 
-        <div className="adm-split" style={{ alignItems: 'start' }}>
-          {/* Contact Info Cards */}
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div className="adm-card">
-              <div className="section-label" style={{ marginBottom: '24px' }}>Established Channels</div>
+        <div className="adm-split" style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: "48px", alignItems: "start" }}>
+          {/* Info Side */}
+          <div style={{ display: "grid", gap: "24px" }}>
+            <div className="adm-card" style={{ padding: "32px", borderRadius: "20px", background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <h3 style={{ fontSize: "20px", fontWeight: 800, marginBottom: "32px" }}>Get in Touch</h3>
               
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '32px' }}>
-                <div className="dc-icon" style={{ flexShrink: 0 }}><Phone size={20} /></div>
+              <div style={{ display: "flex", gap: "20px", marginBottom: "32px" }}>
+                <div style={{ 
+                  width: "48px", height: "48px", background: "var(--bg-alt)", borderRadius: "12px", 
+                  display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)"
+                }}><Phone size={20} /></div>
                 <div>
-                  <div className="lbl" style={{ marginBottom: '4px' }}>Voice & WhatsApp</div>
-                  <div style={{ fontSize: '18px', fontWeight: 700 }}>{settings.phone || "+233 00 000 000"}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 600, marginTop: '2px' }}>Operational 24/7 for Logistics</div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "4px" }}>Call or WhatsApp</div>
+                  <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>{settings.phone || "+233 00 000 000"}</div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '32px' }}>
-                <div className="dc-icon" style={{ flexShrink: 0 }}><Mail size={20} /></div>
+              <div style={{ display: "flex", gap: "20px", marginBottom: "32px" }}>
+                <div style={{ 
+                  width: "48px", height: "48px", background: "var(--bg-alt)", borderRadius: "12px", 
+                  display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)"
+                }}><Mail size={20} /></div>
                 <div>
-                  <div className="lbl" style={{ marginBottom: '4px' }}>Secure Inquiries</div>
-                  <div style={{ fontSize: '18px', fontWeight: 700 }}>{settings.email || "ops@jaybesinautos.com"}</div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "4px" }}>Email Us</div>
+                  <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>{settings.email || "hello@jaybesinautos.com"}</div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '20px' }}>
-                <div className="dc-icon" style={{ flexShrink: 0 }}><MapPin size={20} /></div>
+              <div style={{ display: "flex", gap: "20px" }}>
+                <div style={{ 
+                  width: "48px", height: "48px", background: "var(--bg-alt)", borderRadius: "12px", 
+                  display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)"
+                }}><MapPin size={20} /></div>
                 <div>
-                  <div className="lbl" style={{ marginBottom: '4px' }}>Regional Command</div>
-                  <div style={{ fontSize: '16px', fontWeight: 700 }}>{settings.address || "Accra, Ghana Cluster"}</div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "4px" }}>Office Location</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text)" }}>{settings.address || "Accra, Ghana"}</div>
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div className="adm-card" style={{ padding: '24px' }}>
-                <Clock size={20} style={{ marginBottom: '16px', color: 'var(--accent)' }} />
-                <div style={{ fontSize: '13px', fontWeight: 700 }}>Market Hours</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Standard: 08:00 - 18:00</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div className="adm-card" style={{ padding: "24px", borderRadius: "16px", textAlign: "center" }}>
+                <Clock size={24} style={{ marginBottom: "12px", color: "var(--accent)", margin: "0 auto 12px" }} />
+                <div style={{ fontSize: "14px", fontWeight: 800 }}>Business Hours</div>
+                <div style={{ fontSize: "12px", color: "var(--text-dim)", marginTop: "4px" }}>Mon - Sat: 8:00 - 18:00</div>
               </div>
-              <div className="adm-card" style={{ padding: '24px' }}>
-                <Globe size={20} style={{ marginBottom: '16px', color: 'var(--accent)' }} />
-                <div style={{ fontSize: '13px', fontWeight: 700 }}>Global Sync</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Active Real-time Monitoring</div>
+              <div className="adm-card" style={{ padding: "24px", borderRadius: "16px", textAlign: "center" }}>
+                <MessageSquare size={24} style={{ marginBottom: "12px", color: "var(--accent)", margin: "0 auto 12px" }} />
+                <div style={{ fontSize: "14px", fontWeight: 800 }}>Fast Response</div>
+                <div style={{ fontSize: "12px", color: "var(--text-dim)", marginTop: "4px" }}>Average reply within 1hr</div>
               </div>
             </div>
           </div>
 
-          {/* Form Card */}
-          <div className="adm-card" style={{ padding: '48px' }}>
+          {/* Form Side */}
+          <div className="adm-card" style={{ padding: "40px", borderRadius: "24px", boxShadow: "0 10px 40px rgba(0,0,0,0.05)" }}>
             {sent ? (
               <div style={{ textAlign: "center", padding: "40px" }}>
-                <div className="dc-icon" style={{ margin: "0 auto 24px", width: '64px', height: '64px' }}>
-                  <Send size={32} />
-                </div>
-                <h2>Transmission Success</h2>
-                <p style={{ margin: "16px auto 32px" }}>
-                  Your inquiry has been logged into the protocol. An operative will contact you regarding your requirements.
+                <div style={{ 
+                  width: "72px", height: "72px", background: "var(--accent-dim)", borderRadius: "50%", 
+                  display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)",
+                  margin: "0 auto 24px"
+                }}><Send size={32} /></div>
+                <h2 style={{ fontSize: "24px", fontWeight: 800, marginBottom: "16px" }}>Message Sent!</h2>
+                <p style={{ color: "var(--text-dim)", marginBottom: "32px", lineHeight: 1.6 }}>
+                  Thank you for reaching out. One of our agents will contact you shortly to discuss your request.
                 </p>
-                <button className="btn-sm-ghost" onClick={() => setSent(false)}>Initiate New Request</button>
+                <button className="btn-p" onClick={() => setSent(false)} style={{ padding: "0 32px", height: "48px" }}>Send Another Message</button>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
-                <div className="section-label" style={{ marginBottom: '32px' }}>Transmission Protocol</div>
+                <h3 style={{ fontSize: "20px", fontWeight: 800, marginBottom: "32px" }}>Send us a Message</h3>
                 
-                <div className="frow" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
                   <div className="fg">
-                    <label className="lbl">Operator Identity</label>
-                    <input required className="inp" placeholder="Full Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                    <label className="lbl">Full Name</label>
+                    <input required className="inp" style={{ background: "var(--bg-alt)" }} value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
                   </div>
                   <div className="fg">
-                    <label className="lbl">Contact Frequency</label>
-                    <input required className="inp" placeholder="Phone Number" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                    <label className="lbl">Phone Number</label>
+                    <input required className="inp" style={{ background: "var(--bg-alt)" }} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
                   </div>
                 </div>
 
-                <div className="fg">
-                  <label className="lbl">Secure Email</label>
-                  <input required className="inp" type="email" placeholder="email@provider.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                <div className="fg" style={{ marginBottom: "20px" }}>
+                  <label className="lbl">Email Address</label>
+                  <input required className="inp" type="email" style={{ background: "var(--bg-alt)" }} value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
                 </div>
 
-                <div className="fg">
-                  <label className="lbl">Request Category</label>
-                  <select className="inp" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})}>
+                <div className="fg" style={{ marginBottom: "20px" }}>
+                  <label className="lbl">I'm interested in...</label>
+                  <select className="inp" style={{ background: "var(--bg-alt)" }} value={form.subject} onChange={e => setForm({...form, subject: e.target.value})}>
                     <option>General Inquiry</option>
                     <option>Vehicle Purchase</option>
-                    <option>Import Pipeline Request</option>
-                    <option>Hardware/Spare Parts</option>
-                    <option>Partnership Protocol</option>
+                    <option>Import Service</option>
+                    <option>Spare Parts</option>
                   </select>
                 </div>
 
-                <div className="fg">
-                  <label className="lbl">Message Payload</label>
-                  <textarea required className="inp" rows={4} placeholder="Describe your requirements in detail..." value={form.message} onChange={e => setForm({...form, message: e.target.value})} />
+                <div className="fg" style={{ marginBottom: "32px" }}>
+                  <label className="lbl">Your Message</label>
+                  <textarea required className="inp" rows={4} style={{ background: "var(--bg-alt)" }} value={form.message} onChange={e => setForm({...form, message: e.target.value})} />
                 </div>
 
-                <button className="btn-p" type="submit" disabled={loading} style={{ width: "100%", height: '52px', justifyContent: "center", fontSize: '14px' }}>
-                  {loading ? "Transmitting..." : "Send Secure Message"} <ArrowRight size={18} />
+                <button className="btn-p" type="submit" disabled={loading} style={{ width: "100%", height: "56px", fontSize: "16px", gap: "12px" }}>
+                  {loading ? "Sending..." : "Send Message"} <ArrowRight size={20} />
                 </button>
               </form>
             )}
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 980px) {
+          .adm-split { grid-template-columns: 1fr !important; gap: 40px !important; }
+        }
+      `}</style>
     </div>
   );
 }

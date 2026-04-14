@@ -35,14 +35,20 @@ export function Navbar({ settings, annOn, onAdminClick }) {
           <Link to="/" className="nav-logo" onClick={() => setDrawerOpen(false)}>
             {settings.logo
               ? <img src={settings.logo} className="logo-img" alt="" />
-              : <div className="nav-logo-mark">{parts[0][0]}</div>}
-            <div className="nav-brand"><span>{parts[0]}</span> {parts.slice(1).join(" ")}</div>
+              : <div className="nav-logo-mark" style={{ background: 'var(--accent)', color: '#FFFFFF' }}>{parts[0][0]}</div>}
+            <div className="nav-brand" style={{ color: 'var(--text)' }}>
+              <span style={{ color: 'var(--accent)' }}>{parts[0]}</span> {parts.slice(1).join(" ")}
+            </div>
           </Link>
           
           <ul className="nav-links">
             {navLinks.map((link) => (
               <li key={link.name}>
-                <Link to={link.path} className={isActive(link.path) ? "active" : ""}>
+                <Link 
+                  to={link.path} 
+                  className={isActive(link.path) ? "active" : ""}
+                  style={{ color: isActive(link.path) ? 'var(--accent)' : 'var(--text-dim)' }}
+                >
                   {link.name}
                 </Link>
               </li>
@@ -50,10 +56,10 @@ export function Navbar({ settings, annOn, onAdminClick }) {
           </ul>
 
           <div className="nav-actions">
-            <button className="btn-sm btn-sm-ghost" onClick={onAdminClick}>
+            <button className="btn-sm btn-sm-ghost" onClick={onAdminClick} style={{ borderColor: 'var(--border-bright)', color: 'var(--text-dim)' }}>
               <LayoutDashboard size={14} /> Admin
             </button>
-            <Link to="/browse" className="btn-p">Start Browsing</Link>
+            <Link to="/browse" className="btn-p" style={{ background: 'var(--accent)', color: '#FFFFFF' }}>Start Browsing</Link>
           </div>
 
           <button className={`nav-burger${drawerOpen ? " open" : ""}`} onClick={() => setDrawerOpen(o => !o)} aria-label="Menu">

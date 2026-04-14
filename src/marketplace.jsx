@@ -341,8 +341,8 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: "#98a2b3" }}>{l}</span><span style={{ fontWeight: 600 }}>{usd(v)}</span></div>
                 ))}
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-                  <span style={{ fontWeight: 800, color: "#f97316" }}>Total Purchase Cost</span>
-                  <span style={{ fontWeight: 800, fontSize: 20, color: "#f97316" }}>{usd(row.purchaseCost)}</span>
+                  <span style={{ fontWeight: 800, color: "var(--accent)" }}>Total Purchase Cost</span>
+                  <span style={{ fontWeight: 800, fontSize: 20, color: "var(--accent)" }}>{usd(row.purchaseCost)}</span>
                 </div>
                 <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 10, marginTop: 4 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}><span style={{ color: "#98a2b3" }}>Est. Duty & Clearance</span><span style={{ fontWeight: 600 }}>{usd(row.clearingEstimate)}</span></div>
@@ -354,7 +354,7 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
               </div>
             ) : (
               <div style={{ textAlign: "center", padding: "10px 0" }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#f97316", marginBottom: 4 }}>Price on Request</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "var(--accent)", marginBottom: 4 }}>Price on Request</div>
                 <div style={{ fontSize: 12, color: "#98a2b3" }}>Contact our agents for the latest FOB & landed cost estimates for this vehicle.</div>
               </div>
             )}
@@ -438,11 +438,12 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
 
 export function MarketplaceSimplePage({ title, subtitle, ctaLabel, onCta, onBack }) {
   return (
-    <div style={{ paddingTop: 72, maxWidth: 920, margin: "0 auto", paddingInline: 18, paddingBottom: 96 }}>
-      <div style={{ background: "var(--bg-card, #fff)", border: "1px solid var(--border, #eaecf0)", borderRadius: 14, padding: 20 }}><div style={{ marginBottom: 10 }}>{onBack && <button className="btn-sm btn-sm-ghost" onClick={onBack}>← Back</button>}</div>
-        <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 30, marginBottom: 6, color: "var(--text, #101828)" }}>{title}</div>
-        <div style={{ color: "#667085", marginBottom: 16 }}>{subtitle}</div>
-        {ctaLabel && <button className="btn-p" onClick={onCta}>{ctaLabel}</button>}
+    <div style={{ paddingTop: 140, maxWidth: 920, margin: "0 auto", paddingInline: 18, paddingBottom: 96 }}>
+      <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 20, padding: "40px", boxShadow: "0 10px 40px rgba(0,0,0,0.05)" }}>
+        <div style={{ marginBottom: 24 }}>{onBack && <button className="btn-sm btn-sm-ghost" onClick={onBack}>← Back</button>}</div>
+        <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 36, marginBottom: 12, color: "var(--text)" }}>{title}</div>
+        <div style={{ color: "var(--text-dim)", fontSize: "16px", marginBottom: 32, lineHeight: 1.6 }}>{subtitle}</div>
+        {ctaLabel && <button className="btn-p" style={{ padding: "0 40px", height: "56px", fontSize: "15px" }} onClick={onCta}>{ctaLabel}</button>}
       </div>
     </div>
   );
@@ -455,36 +456,34 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
 
   const submit = async () => {
     if (!form.name.trim() || !form.phone.trim()) {
-      setStatus("Protocol Error: Identity and Contact Frequency required.");
+      setStatus("Error: Name and Phone number are required.");
       return;
     }
     setLoading(true);
     setStatus("");
     try {
       const leadMessage =
-        "Jaybesin Protocol: Account Request\n" +
-        "Operator: " + form.name.trim() + "\n" +
-        "Frequency: " + form.phone.trim() + "\n" +
-        (form.email.trim() ? "Credential: " + form.email.trim() + "\n" : "") +
-        (form.tracking.trim() ? "Ref Target: " + form.tracking.trim() + "\n" : "") +
-        "Payload: " + (form.message || "Standard support request initiated.");
+        "Jaybesin Autos: Support Request\n" +
+        "Customer: " + form.name.trim() + "\n" +
+        "Phone: " + form.phone.trim() + "\n" +
+        (form.email.trim() ? "Email: " + form.email.trim() + "\n" : "") +
+        (form.tracking.trim() ? "Order Ref: " + form.tracking.trim() + "\n" : "") +
+        "Message: " + (form.message || "Customer initiated a support request.");
 
       await addInquiry({
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
-        subject: form.tracking ? "Dossier Tracking - " + form.tracking : "Registry Enrollment",
+        subject: form.tracking ? "Order Follow-up - " + form.tracking : "Account Inquiry",
         message: leadMessage,
         type: "account",
       });
 
       sendLeadToWhatsApp(settings?.whatsapp, leadMessage);
-      setStatus("Transmission Logged. Protocol initiated.");
+      setStatus("Success: Your request has been sent. We will contact you shortly.");
       setForm({ name: "", phone: "", email: "", tracking: "", message: "" });
     } catch (e) {
-      setStatus(`Transmission Error: ${e.message}`);
-    } finally {
-      setLoading(false);
+      setStatus(`Error: ${e.message}`);
     }
   };
 

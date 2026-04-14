@@ -59,7 +59,7 @@ export function FilterConsole({ filters, update, resultCount }) {
         
         .inp-mobile:focus {
           background: #FFFFFF;
-          border-color: #0071E3;
+          border-color: var(--accent);
           box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
         }
         

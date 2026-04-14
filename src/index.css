@@ -1,29 +1,29 @@
     :root {
-      /* CORE PALETTE: Premium Monochrome */
-      --bg: #0A0A0A;
-      --bg-alt: #121212;
-      --bg-card: #161616;
-      --bg-input: #1E1E1E;
+      /* CORE PALETTE: Professional White & Blue */
+      --bg: #FFFFFF;
+      --bg-alt: #F5F5F7;
+      --bg-card: #FFFFFF;
+      --bg-input: #F5F5F7;
       
-      --accent: #FFFFFF;
-      --accent-dim: rgba(255, 255, 255, 0.6);
+      --accent: #0071E3; /* Premium Blue */
+      --accent-dim: rgba(0, 113, 227, 0.1);
       --gold: #C9A84C;
       --gold-dim: rgba(201, 168, 76, 0.4);
       
-      --text: #F8F8F8;
-      --text-dim: #94A3B8;
-      --text-muted: #475569;
+      --text: #1D1D1F;
+      --text-dim: #86868B;
+      --text-muted: #6E6E73;
       
-      --border: rgba(255, 255, 255, 0.08);
-      --border-bright: rgba(255, 255, 255, 0.15);
+      --border: #E8E8ED;
+      --border-bright: #D2D2D7;
       
       /* GRADIENTS */
-      --grad-main: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%);
-      --grad-dark: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
-      --grad-glass: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+      --grad-main: linear-gradient(135deg, #0071E3 0%, #00B4D8 100%);
+      --grad-dark: linear-gradient(135deg, #1D1D1F 0%, #000000 100%);
+      --grad-glass: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
 
-      /* MARKETPLACE PIVOT TOKENS */
-      --mk-accent: #FF6600;
+      /* MARKETPLACE PIVOT TOKENS (Legacy compatibility) */
+      --mk-accent: #0071E3;
       --mk-bg: #FFFFFF;
       --mk-surface: #F5F5F7;
       --mk-text: #1D1D1F;

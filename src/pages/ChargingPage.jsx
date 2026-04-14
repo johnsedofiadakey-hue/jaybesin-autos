@@ -1,58 +1,83 @@
 import React from "react";
-import { Zap, HelpCircle, Cpu } from "lucide-react";
-import { fmtUSD } from "../utils/theme";
+import { Zap, Cpu, CheckCircle } from "lucide-react";
 
 export function ChargingPage({ charging = [] }) {
+  const usd = (v) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v);
+
   return (
-    <div className="sec" style={{ paddingTop: "140px" }}>
-      <div className="sec-chip chip-4 rv on" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text)' }}>Sustainable Infrastructure</div>
-      <h2 className="sec-h rv on">EV Sourcing & <span style={{ opacity: 0.4 }}>Grid Protocols</span></h2>
-      <p className="sec-p rv on" style={{ marginBottom: "60px", maxWidth: '700px' }}>
-        Jaybesin Autos facilitates the transition to sustainable mobility by providing mission-critical 
-        charging architecture and expert installation protocols for the Ghanaian market.
+    <div className="sec" style={{ paddingTop: "140px", background: "var(--bg)" }}>
+      <div className="sec-chip" style={{ background: "var(--accent-dim)", color: "var(--accent)" }}>
+        EV Infrastructure
+      </div>
+      <h2 className="sec-h">Power Your <span style={{ color: "var(--accent)" }}>Journey</span></h2>
+      <p className="sec-p" style={{ marginBottom: "60px", maxWidth: "700px" }}>
+        We provide professional EV charging solutions for your home and business. 
+        Engineered for performance and durability in the Ghanaian environment.
       </p>
 
-      <div className="svc-grid">
+      <div className="svc-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
         {charging.map((c, i) => (
-          <div key={c.id} className="adm-card rv on" style={{ transitionDelay: `${i * 0.1}s`, padding: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
-              <div className="dc-icon" style={{ width: '48px', height: '48px', borderRadius: '12px' }}>
-                <Zap size={24} />
+          <div key={c.id} className="adm-card" style={{ 
+            padding: "32px", 
+            border: "1px solid var(--border)", 
+            borderRadius: "16px",
+            background: "var(--bg-card)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.04)"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "24px" }}>
+              <div style={{ 
+                width: "56px", 
+                height: "56px", 
+                background: "var(--accent)", 
+                borderRadius: "14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#FFFFFF"
+              }}>
+                <Zap size={28} />
               </div>
-              <div style={{ fontSize: "24px", opacity: 0.5 }}>{c.emoji || "🔌"}</div>
+              <div style={{ fontSize: "28px" }}>{c.emoji || "🔌"}</div>
             </div>
             
-            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>
               {c.brand} · {c.type}
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 800, marginBottom: '16px' }}>{c.name}</div>
-            <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.6, marginBottom: '24px' }}>
-              High-performance {c.power} output. Engineered for durability and optimized power delivery in residential and commercial settings.
+            <h3 style={{ fontSize: "22px", fontWeight: 800, marginBottom: "12px", color: "var(--text)" }}>{c.name}</h3>
+            <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: 1.6, marginBottom: "24px" }}>
+              High-performance {c.power} output. Ideal for rapid daily charging and long-term battery health.
             </p>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border)", paddingTop: "24px" }}>
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: "24px", fontWeight: 800 }}>{fmtUSD(c.price)}</div>
-                <div style={{ fontSize: "10px", fontWeight: 700, opacity: 0.5, marginTop: '4px' }}>UNIT VALUATION</div>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Unit Price</div>
+                <div style={{ fontSize: "24px", fontWeight: 800, color: "var(--text)" }}>{usd(c.price)}</div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: "14px", fontWeight: 700 }}>{fmtUSD(c.installation)}</div>
-                <div style={{ fontSize: "10px", fontWeight: 700, opacity: 0.5, marginTop: '4px' }}>INSTALLATION</div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Installation</div>
+                <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--accent)" }}>+ {usd(c.installation)}</div>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="adm-card" style={{ marginTop: "80px", textAlign: "center", padding: "64px 40px", background: 'rgba(255,255,255,0.02)' }}>
-        <Cpu size={48} style={{ marginBottom: "24px", opacity: 0.1 }} />
-        <h3 style={{ fontSize: "28px", fontWeight: 800, marginBottom: '16px' }}>Custom Infrastructure Design</h3>
-        <p className="sec-p" style={{ margin: "0 auto 32px", maxWidth: '600px' }}>
-          Our engineering team develops bespoke charging ecosystems for fleet operators and private estates. 
-          Request a specialized technical assessment today.
+      <div style={{ 
+        marginTop: "80px", 
+        textAlign: "center", 
+        padding: "64px 40px", 
+        background: "var(--bg-alt)", 
+        borderRadius: "24px",
+        border: "1px solid var(--border)"
+      }}>
+        <Cpu size={48} style={{ marginBottom: "24px", color: "var(--accent)", opacity: 0.8 }} />
+        <h3 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "16px", color: "var(--text)" }}>Professional Consultation</h3>
+        <p className="sec-p" style={{ margin: "0 auto 32px", maxWidth: "600px" }}>
+          Need a custom charging setup for your office or fleet? Our engineers are ready to design 
+          the perfect power ecosystem for your needs.
         </p>
-        <button className="btn-p" style={{ padding: '0 40px', height: '56px' }}>
-          Initiate Engineering Consultation
+        <button className="btn-p" style={{ padding: "0 40px", height: "56px", fontSize: "15px" }}>
+          Get a Custom Quote
         </button>
       </div>
     </div>
