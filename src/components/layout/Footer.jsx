@@ -74,7 +74,7 @@ export function Footer({ onAdminClick, settings = {} }) {
             background: 'none', 
             border: 'none', 
             color: 'var(--text)', 
-            opacity: 0.15, 
+            opacity: 0.3, 
             fontSize: '10px', 
             cursor: 'pointer',
             padding: '4px'

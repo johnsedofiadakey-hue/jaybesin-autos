@@ -257,9 +257,9 @@ export default function App() {
   };
 
   const marketplaceCars = [...cars, ...vehicles];
-  const isMarketplaceSurface = location.pathname === "/" || location.pathname.startsWith("/browse") || location.pathname.startsWith("/car/");
+  const isMarketplaceSurface = location.pathname === "/" || location.pathname.startsWith("/browse") || location.pathname.startsWith("/car/") || location.pathname.startsWith("/deals") || location.pathname.startsWith("/track");
   const isAdminPath = location.pathname.startsWith("/admin");
-  const annOn = settings.annBarOn && annVisible && !isAdminPath;
+  const annOn = (settings.annBarOn ?? false) && annVisible && !isAdminPath;
 
   if (!fbReady) {
     return (
