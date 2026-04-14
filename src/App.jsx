@@ -5,8 +5,6 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 
 // Components & UI
-import { Cursor } from "./components/common/Cursor";
-import { Particles } from "./components/common/Particles";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
 import { AdminProtectedRoute } from "./components/auth/AdminProtectedRoute";
@@ -256,10 +254,10 @@ export default function App() {
     if (printNow) setTimeout(() => win.print(), 500);
   };
 
-  const marketplaceCars = [...cars, ...vehicles];
+  const marketplaceCars = [...(cars || []), ...(vehicles || [])];
   const isMarketplaceSurface = location.pathname === "/" || location.pathname.startsWith("/browse") || location.pathname.startsWith("/car/") || location.pathname.startsWith("/deals") || location.pathname.startsWith("/track");
   const isAdminPath = location.pathname.startsWith("/admin");
-  const annOn = (settings.annBarOn ?? false) && annVisible && !isAdminPath;
+  const annOn = false; // Permanently disabled as requested
 
   if (!fbReady) {
     return (
@@ -272,24 +270,14 @@ export default function App() {
 
   return (
     <HelmetProvider>
-      <Cursor />
       <div className="grain" />
       
       {!isAdminPath && (
-        <>
-          <Navbar settings={settings} annOn={annOn} onAdminClick={() => navigate("/admin")} />
-          {annOn && (
-            <div className="ann-bar">
-              {settings.annBarText}
-              {settings.annBarLink && <a href="/browse" onClick={e => { e.preventDefault(); navigate("/browse") }}>{settings.annBarLink}</a>}
-              <button className="ann-close" onClick={() => setAnnVisible(false)}>×</button>
-            </div>
-          )}
-        </>
+        <Navbar settings={settings} annOn={false} onAdminClick={() => navigate("/admin")} />
       )}
 
       <main style={{ 
-        paddingTop: isAdminPath ? 0 : (isMarketplaceSurface ? 0 : (annOn ? "98px" : "60px")),
+        paddingTop: isAdminPath ? 0 : (isMarketplaceSurface ? 0 : "60px"),
         paddingBottom: (isMarketplaceSurface && !isAdminPath) ? "80px" : 0
       }}>
         <Routes>
@@ -312,27 +300,17 @@ export default function App() {
           <Route path="/admin" element={
             <AdminProtectedRoute loading={!fbReady}>
               <AdminDashboard 
-                vehicles={vehicles} orders={orders} inquiries={inquiries} 
-                parts={parts} charging={charging} settings={settings} 
-                onLogout={handleLogout} 
+                vehicles={marketplaceCars} orders={orders} inquiries={inquiries} 
+                settings={settings} onLogout={handleLogout} 
               />
             </AdminProtectedRoute>
           } />
 
-          <Route path="/admin/inventory" element={
-            <AdminProtectedRoute loading={!fbReady}>
-              <AdminInventory 
-                vehicles={vehicles} cars={cars} settings={settings} onLogout={handleLogout}
-                onSaveCar={saveCar} onDeleteCar={deleteCar}
-                onSaveVehicle={v => setActiveVehicle(v || true)} onDeleteVehicle={deleteVehicle}
-              />
-            </AdminProtectedRoute>
-          } />
 
           <Route path="/admin/inquiries" element={
             <AdminProtectedRoute loading={!fbReady}>
               <AdminInquiries 
-                inquiries={inquiries} settings={settings} onLogout={handleLogout}
+                inquiries={inquiries} orders={orders} settings={settings} onLogout={handleLogout}
                 onUpdateStatus={updateInquiryStatus} onDeleteInquiry={deleteInquiry}
                 onConvertOrder={handleInquiryToOrder}
               />
@@ -369,21 +347,11 @@ export default function App() {
           <Route path="/admin/marketplace" element={
             <AdminProtectedRoute loading={!fbReady}>
               <AdminMarketplace 
-                cars={cars} onSaveCar={saveCar} settings={settings} onLogout={handleLogout}
+                cars={marketplaceCars} onSaveCar={saveCar} settings={settings} onLogout={handleLogout}
                 onImportTimelineChange={(t) => handleSaveSettings({...settings, importTimeline: t})}
-                onImportLeadTimeChange={(d) => handleSaveSettings({...settings, importLeadTimeDays: d})}
-                onSaveTimeline={() => handleSaveSettings(settings)}
+                onImportLeadTimeChange={(l) => handleSaveSettings({...settings, importLeadTimeDays: l})}
+                onSaveTimeline={(t) => handleSaveSettings({...settings, importTimeline: t})}
               />
-            </AdminProtectedRoute>
-          } />
-
-          <Route path="/admin/charging" element={
-            <AdminProtectedRoute loading={!fbReady}>
-               <AdminChargingParts 
-                 charging={charging} parts={parts} settings={settings} onLogout={handleLogout}
-                 onSaveCharger={saveCharger} onDeleteCharger={deleteCharger}
-                 onSavePart={savePart} onDeletePart={deletePart}
-               />
             </AdminProtectedRoute>
           } />
 

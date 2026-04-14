@@ -5,9 +5,9 @@ export function VehicleCard({ v, delay = 0, settings = {} }) {
   const usd = (val) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
   
   // Logic for the price manifest as seen in the mockup
-  const fobPrice = v.priceChina || v.price || 0;
-  const shippingCharge = v.shippingFee || 3500;
-  const totalPurchase = (v.purchaseCost || (fobPrice + shippingCharge));
+  const fobPrice = v.priceChina ?? 0;
+  const shippingCharge = v.shippingFee ?? 0;
+  const totalPurchase = v.purchaseCost || (fobPrice + shippingCharge + (v.inspectionFee ?? 0));
 
   return (
     <div 
@@ -38,11 +38,14 @@ export function VehicleCard({ v, delay = 0, settings = {} }) {
         )}
         <div style={{ 
           position: 'absolute', left: '8px', bottom: '8px', 
-          background: 'rgba(0,0,0,0.6)', color: '#FFF', 
-          fontSize: '11px', fontWeight: 700, padding: '4px 10px', 
-          borderRadius: '20px', backdropFilter: 'blur(4px)'
+          background: v.isAvailableInGhana ? '#10B981' : 'rgba(0,113,227,0.9)', 
+          color: '#FFF', 
+          fontSize: '10px', fontWeight: 900, padding: '4px 10px', 
+          borderRadius: '4px', backdropFilter: 'blur(4px)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
         }}>
-          China
+          {v.isAvailableInGhana ? 'Available in Ghana' : 'Pre-order from China'}
         </div>
       </div>
 
@@ -61,9 +64,9 @@ export function VehicleCard({ v, delay = 0, settings = {} }) {
             <span>Vehicle Price (FOB):</span>
             <span style={{ color: '#1D1D1F' }}>{usd(fobPrice)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#86868B', fontWeight: 600 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#86868B", fontWeight: 600 }}>
             <span>Shipping:</span>
-            <span style={{ color: '#1D1D1F' }}>{usd(shippingCharge)}</span>
+            <span style={{ color: "#1D1D1F" }}>{shippingCharge > 0 ? usd(shippingCharge) : "Included"}</span>
           </div>
         </div>
 

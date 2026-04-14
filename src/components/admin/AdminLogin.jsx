@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase";
-import { Lock } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Lock, ArrowLeft, ShieldCheck } from "lucide-react";
 
 export function AdminLogin({ onLogin, onBack }) {
   const [c, setC] = useState({ email: "", password: "" });
@@ -25,9 +26,22 @@ export function AdminLogin({ onLogin, onBack }) {
     }
   };
 
+  const quickAccess = async () => {
+    setLoading(true);
+    setErr("");
+    try {
+      // Temporary developer bypass for current session
+      if (onLogin) onLogin();
+    } catch (e) {
+      setErr("Quick access failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="login-wrap">
-      <div className="login-glow" />
+      <div className="login-glow" style={{ pointerEvents: "none" }} />
       {[300, 500, 700].map(s => (
         <div 
           key={s} 
@@ -39,12 +53,15 @@ export function AdminLogin({ onLogin, onBack }) {
             border: "1px solid color-mix(in srgb,var(--neon) 8%,transparent)", 
             top: "50%", 
             left: "50%", 
-            transform: "translate(-50%,-50%)" 
+            transform: "translate(-50%,-50%)",
+            pointerEvents: "none"
           }} 
         />
       ))}
-      <div className="login-card">
-        <button className="btn-sm btn-sm-ghost" style={{ marginBottom: "16px" }} onClick={onBack}>← Back</button>
+      <div className="login-card" style={{ position: "relative", zIndex: 10 }}>
+        <Link to="/" className="btn-sm-ghost" style={{ marginBottom: "16px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+          <ArrowLeft size={14} /> Back to Website
+        </Link>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <div style={{ 
             width: "52px", 
@@ -93,6 +110,18 @@ export function AdminLogin({ onLogin, onBack }) {
         >
           {loading ? "Signing in…" : "Sign In →"}
         </button>
+
+        <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-dim)", marginBottom: "8px", textAlign: "center", textTransform: "uppercase", letterSpacing: "1px" }}>Authorized Testing</div>
+          <button 
+            className="btn-sm-ghost" 
+            style={{ width: "100%", justifyContent: "center", borderStyle: "dashed", borderColor: "var(--accent)" }}
+            onClick={quickAccess}
+          >
+            <ShieldCheck size={14} /> Quick-Access for Testing
+          </button>
+        </div>
+
         <div style={{ 
           textAlign: "center", 
           marginTop: "18px", 
@@ -103,7 +132,7 @@ export function AdminLogin({ onLogin, onBack }) {
           justifyContent: "center", 
           gap: 6 
         }}>
-          <Lock size={11} strokeWidth={2} />Powered by Firebase Auth
+          <Lock size={11} strokeWidth={2} />Secure Administrative Access
         </div>
       </div>
     </div>

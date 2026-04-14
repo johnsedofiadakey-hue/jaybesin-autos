@@ -11,8 +11,6 @@ export function AdminDashboard({
   vehicles = [], 
   orders = [], 
   inquiries = [], 
-  parts = [], 
-  charging = [], 
   settings = {}, 
   onLogout 
 }) {
@@ -34,7 +32,7 @@ export function AdminDashboard({
     },
     { 
       label: "Unit Inventory", 
-      value: vehicles.length + (Array.isArray(settings.cars) ? settings.cars.length : 0), 
+      value: vehicles.length, 
       icon: Car
     }
   ];

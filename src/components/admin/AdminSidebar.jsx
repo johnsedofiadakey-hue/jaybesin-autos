@@ -12,14 +12,11 @@ export function AdminSidebar({ onLogout, settings = {} }) {
   
   const menuItems = [
     { label: "Oversight", path: "/admin", icon: LayoutDashboard },
-    { label: "Marketplace Management", path: "/admin/marketplace", icon: Globe },
-    { label: "Physical Inventory", path: "/admin/inventory", icon: Package },
-    { label: "Charging Systems", path: "/admin/charging", icon: Zap },
-    { label: "Hardware Parts", path: "/admin/parts", icon: Wrench },
-    { label: "Import Logistics", path: "/admin/orders", icon: Ship },
-    { label: "Lead Registry", path: "/admin/inquiries", icon: MessageCircle },
-    { label: "Financial Dossiers", path: "/admin/invoices", icon: FileText },
-    { label: "Global Protocols", path: "/admin/settings", icon: Settings },
+    { label: "Manage Fleet", path: "/admin/marketplace", icon: Car },
+    { label: "Orders & Tracking", path: "/admin/orders", icon: Ship },
+    { label: "Customer Inquiries", path: "/admin/inquiries", icon: MessageCircle },
+    { label: "Invoices", path: "/admin/invoices", icon: FileText },
+    { label: "Global Settings", path: "/admin/settings", icon: Settings },
   ];
 
   const isActive = (path) => location.pathname === path;

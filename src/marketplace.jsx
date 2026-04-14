@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { ShieldCheck, Flame, Sparkles, MessageCircle, Phone, Clock3, CheckCircle2 } from "lucide-react";
-import { addInquiry, saveOrder } from "./firestore";
+import { addInquiry, saveOrder, uploadImage } from "./firestore";
 import { MarketplaceHomepageLayout } from "./components/marketplace/HomepageLayout";
 import { DynamicHead } from "./components/DynamicHead";
 import { Share2, Link2, LucideShare } from "lucide-react";
 
-const QUICK_TABS = ["All Cars", "SUV", "Sedan", "Pickup", "Truck", "Electric", "Cheap Deals", "New Arrivals", "Verified Cars"];
+const QUICK_TABS = ["All Cars", "Available", "Pre-order", "SUV", "Sedan", "Pickup", "Truck", "Electric", "Cheap Deals"];
 const SORTS = {
   newest: "Newest",
   priceAsc: "FOB Price",
@@ -75,9 +75,9 @@ export const normalizeCar = (car = {}) => {
     estimatedLandedCost,
     totalLandedCost: estimatedLandedCost,
     isPriceAvailable: (asNum(car.priceChina) || asNum(car.price) || asNum(car.purchaseCost)) > 0,
-    images,
-    documents,
-    tags,
+    isAvailableInGhana: !!car.isAvailableInGhana || !!car.inGhana,
+    isFeatured: !!car.isFeatured || !!car.featured,
+    isSpecial: !!car.isSpecial || !!car.special,
     dateAdded: car.dateAdded || car.createdAt?.toDate?.()?.toISOString?.() || new Date().toISOString(),
   };
 };
@@ -110,6 +110,8 @@ export function MarketplaceBrowsePage({ cars, setPage, hero = false, settings = 
       if (filters.priceMin && c.estimatedLandedCost < asNum(filters.priceMin)) return false;
       if (filters.priceMax && c.estimatedLandedCost > asNum(filters.priceMax)) return false;
 
+      if (quickTab === "Available" && !c.isAvailableInGhana) return false;
+      if (quickTab === "Pre-order" && c.isAvailableInGhana) return false;
       if (quickTab === "SUV" && c.bodyType !== "SUV") return false;
       if (quickTab === "Sedan" && c.bodyType !== "Sedan") return false;
       if (quickTab === "Pickup" && c.bodyType !== "Pickup") return false;
@@ -314,12 +316,30 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
             <div style={{ color: "#667085", fontSize: 13 }}>{row.year} · {row.mileage.toLocaleString()} km · {row.locationChina}</div>
           </div>
 
+          {row.isAvailableInGhana ? (
+            <div style={{ background: "linear-gradient(135deg, #10B981 0%, #059669 100%)", borderRadius: 12, padding: "12px 16px", color: "#fff", display: "flex", alignItems: "center", gap: 12, marginBottom: "12px", boxShadow: "0 4px 12px rgba(16,185,129,0.2)" }}>
+              <div style={{ background: "rgba(255,255,255,0.2)", padding: 8, borderRadius: "50%" }}><CheckCircle2 size={20} /></div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 14 }}>AVAILABLE IN GHANA</div>
+                <div style={{ fontSize: 12, opacity: 0.9 }}>This unit is physically present and ready for inspection.</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: "linear-gradient(135deg, var(--accent) 0%, #00B4D8 100%)", borderRadius: 12, padding: "12px 16px", color: "#fff", display: "flex", alignItems: "center", gap: 12, marginBottom: "12px", boxShadow: "0 4px 12px rgba(0,113,227,0.2)" }}>
+              <div style={{ background: "rgba(255,255,255,0.2)", padding: 8, borderRadius: "50%" }}><Ship size={20} /></div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 14 }}>PRE-ORDER FROM CHINA</div>
+                <div style={{ fontSize: 12, opacity: 0.9 }}>Direct import dossier available. Est. lead time: {leadDays} days.</div>
+              </div>
+            </div>
+          )}
+
           {row.documents.length > 0 && (
-            <div style={{ background: "linear-gradient(135deg, #17b26a 0%, #079455 100%)", borderRadius: 12, padding: "12px 16px", color: "#fff", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 12px rgba(23,178,106,0.2)" }}>
-              <div style={{ background: "rgba(255,255,255,0.2)", padding: 8, borderRadius: "50%" }}><ShieldCheck size={20} /></div>
+            <div style={{ background: "#F2F4F7", border: "1px solid #EAECF0", borderRadius: 12, padding: "12px 16px", color: "#344054", display: "flex", alignItems: "center", gap: 12, marginBottom: "12px" }}>
+              <ShieldCheck size={20} style={{ color: "#10B981" }} />
               <div>
                 <div style={{ fontWeight: 800, fontSize: 14 }}>Verified Inspection Report</div>
-                <div style={{ fontSize: 12, opacity: 0.9 }}>This vehicle has been fully inspected at source.</div>
+                <div style={{ fontSize: 12, color: "#667085" }}>Third-party quality verification completed at source.</div>
               </div>
             </div>
           )}
@@ -337,19 +357,22 @@ export function CarDetailPageMarket({ car, cars = [], setPage, settings = {} }) 
             </div>
             {row.isPriceAvailable ? (
               <div style={{ display: "grid", gap: 8 }}>
-                {[ ["Vehicle Price (FOB)", row.priceChina], ["Inspection & Report", row.inspectionFee], ["Shipping to Ghana", row.shippingFee] ].map(([l, v]) => (
-                  <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: "#98a2b3" }}>{l}</span><span style={{ fontWeight: 600 }}>{usd(v)}</span></div>
+                {[ ["Vehicle Price (FOB)", row.priceChina, false], ["Inspection & Testing", row.inspectionFee, true], ["Shipping to Ghana", row.shippingFee, true] ].map(([l, v, opt]) => (
+                  <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                    <span style={{ color: "#98a2b3" }}>{l}</span>
+                    <span style={{ fontWeight: 600 }}>{v > 0 ? usd(v) : (opt ? "Included" : "TBD")}</span>
+                  </div>
                 ))}
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
                   <span style={{ fontWeight: 800, color: "var(--accent)" }}>Total Purchase Cost</span>
                   <span style={{ fontWeight: 800, fontSize: 20, color: "var(--accent)" }}>{usd(row.purchaseCost)}</span>
                 </div>
                 <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: 10, marginTop: 4 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}><span style={{ color: "#98a2b3" }}>Est. Duty & Clearance</span><span style={{ fontWeight: 600 }}>{usd(row.clearingEstimate)}</span></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}><span style={{ color: "#98a2b3" }}>Estimated Duty & Clearance</span><span style={{ fontWeight: 600, color: "#F97316" }}>Request Quote</span></div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}><span style={{ color: "#fff", fontWeight: 700 }}>Est. Total Landed</span><span style={{ fontWeight: 800, color: "#fff" }}>{usd(row.estimatedLandedCost)}*</span></div>
                 </div>
                 <div style={{ fontSize: 10, color: "#667085", lineHeight: 1.4, fontStyle: "italic" }}>
-                  * Duty and clearance are Ghanaian government estimates only. Final costs determined at Tema/Takoradi port.
+                  * Duty and clearance estimates are for information only. Final costs determined at Tema/Takoradi port on arrival.
                 </div>
               </div>
             ) : (
@@ -542,9 +565,10 @@ export function MarketplaceAccountPage({ settings = {}, setPage }) {
 }
 
 export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = DEFAULT_TIMELINE, importLeadTimeDays = 45, onImportTimelineChange, onImportLeadTimeChange, onSaveTimeline }) {
-  const blankForm = { id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", imagesText: "", documentsText: "", description: "", locationChina: "", tagsText: "", isFeatured: false, isSpecial: false };
+  const blankForm = { id: "", brand: "", model: "", year: "", mileage: "", fuel: "Petrol", transmission: "Automatic", bodyType: "SUV", seats: "5", engine: "", priceChina: "", inspectionFee: "", shippingFee: "", clearingEstimate: "", images: [], documents: [], description: "", locationChina: "", tagsText: "", isFeatured: false, isSpecial: false, isAvailableInGhana: false };
   const [form, setForm] = useState(blankForm);
   const [editingId, setEditingId] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   const timelineRows = Array.isArray(importTimeline) && importTimeline.length ? importTimeline : DEFAULT_TIMELINE;
   const purchaseTotal = asNum(form.priceChina) + asNum(form.inspectionFee) + asNum(form.shippingFee);
@@ -561,13 +585,47 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
   };
 
   const addImageFiles = async (fileList) => {
-    const values = await readFilesAsDataUrls(fileList);
-    setForm((f) => ({ ...f, imagesText: [f.imagesText, ...values].filter(Boolean).join("\n") }));
+    setIsUploading(true);
+    try {
+      const dataUrls = await readFilesAsDataUrls(fileList);
+      const newUrls = await Promise.all(dataUrls.map((data, i) => 
+        uploadImage(data, `cars/${editingId || 'new'}/${Date.now()}_img_${i}`)
+      ));
+      setForm((f) => ({ ...f, images: [...f.images, ...newUrls] }));
+    } catch (e) {
+      console.error("Upload error:", e);
+      alert("Failed to upload some images.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const addDocumentFiles = async (fileList) => {
-    const values = await readFilesAsDataUrls(fileList);
-    setForm((f) => ({ ...f, documentsText: [f.documentsText, ...values].filter(Boolean).join("\n") }));
+    setIsUploading(true);
+    try {
+      const dataUrls = await readFilesAsDataUrls(fileList);
+      const newDocs = await Promise.all(dataUrls.map((data, i) => 
+        uploadImage(data, `cars/${editingId || 'new'}/${Date.now()}_doc_${i}`)
+      ));
+      const docEntries = newDocs.map((url, i) => ({ 
+        name: fileList[i].name || `Report ${form.documents.length + i + 1}`, 
+        url, 
+        type: "report" 
+      }));
+      setForm((f) => ({ ...f, documents: [...f.documents, ...docEntries] }));
+    } catch (e) {
+      console.error("Doc upload error:", e);
+      alert("Failed to upload some documents.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeItem = (type, index) => {
+    setForm(f => ({
+      ...f,
+      [type]: f[type].filter((_, i) => i !== index)
+    }));
   };
 
   const clearEditor = () => {
@@ -593,24 +651,23 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
       inspectionFee: String(c.inspectionFee || 0),
       shippingFee: String(c.shippingFee || 0),
       clearingEstimate: String(c.clearingEstimate || 0),
-      imagesText: (c.images || []).join("\n"),
-      documentsText: (c.documents || []).map((d) => d?.url).filter(Boolean).join("\n"),
+      images: c.images || [],
+      documents: c.documents || [],
       description: c.description || "",
       locationChina: c.locationChina || "",
       tagsText: (c.tags || []).join(", "),
       isFeatured: !!c.isFeatured,
       isSpecial: !!c.isSpecial,
+      isAvailableInGhana: !!c.isAvailableInGhana,
     });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const save = async () => {
-    const images = form.imagesText.split("\n").map((s) => s.trim()).filter(Boolean);
-    const documents = form.documentsText.split("\n").map((s) => s.trim()).filter(Boolean).map((url, idx) => ({ name: "Report " + (idx + 1), url, type: "report" }));
     const tags = form.tagsText.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 
     await onSaveCar({
-      id: editingId || form.id || undefined,
+      id: editingId || form.id || "",
       brand: form.brand,
       model: form.model,
       year: asNum(form.year),
@@ -627,13 +684,14 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
       purchaseCost: purchaseTotal,
       estimatedLandedCost: estimatedLanded,
       totalLandedCost: estimatedLanded,
-      images,
-      documents,
+      images: form.images,
+      documents: form.documents,
       description: form.description,
       locationChina: form.locationChina,
       tags: tags,
       isFeatured: !!form.isFeatured,
       isSpecial: !!form.isSpecial,
+      isAvailableInGhana: !!form.isAvailableInGhana,
       dateAdded: new Date().toISOString(),
     });
 
@@ -710,7 +768,11 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
           <div className="fg"><label className="lbl">transmission</label><select className="inp" value={form.transmission} onChange={(e) => setForm((f) => ({ ...f, transmission: e.target.value }))}><option>Automatic</option><option>Manual</option></select></div>
           <div className="fg"><label className="lbl">bodyType</label><select className="inp" value={form.bodyType} onChange={(e) => setForm((f) => ({ ...f, bodyType: e.target.value }))}><option>SUV</option><option>Sedan</option><option>Pickup</option><option>Truck</option><option>Hatchback</option></select></div>
           <div className="fg"><label className="lbl">tags (comma)</label><input className="inp" value={form.tagsText} onChange={(e) => setForm((f) => ({ ...f, tagsText: e.target.value }))} placeholder="hot, verified, new" /></div>
-          <div className="fg" style={{ display: "flex", gap: 20, alignItems: "center", paddingTop: 20 }}>
+          <div className="fg" style={{ display: "flex", gap: 20, alignItems: "center", paddingTop: 20, gridColumn: "1 / -1", background: "var(--bg-alt)", padding: "16px", borderRadius: "8px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", color: "var(--accent)" }}>
+              <input type="checkbox" checked={form.isAvailableInGhana} onChange={(e) => setForm((f) => ({ ...f, isAvailableInGhana: e.target.checked }))} /> 
+              Status: Available in Ghana
+            </label>
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
               <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} /> 
               Feature on Homepage
@@ -722,11 +784,63 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
           </div>
         </div>
 
-        <div className="fg"><label className="lbl">description</label><textarea className="inp" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></div>
-        <div className="fg"><label className="lbl">images (URL/base64 per line)</label><textarea className="inp" rows={3} value={form.imagesText} onChange={(e) => setForm((f) => ({ ...f, imagesText: e.target.value }))} /></div>
-        <div className="fg"><label className="lbl">upload image files</label><input className="inp" type="file" accept="image/*" multiple onChange={(e) => addImageFiles(e.target.files)} /></div>
-        <div className="fg"><label className="lbl">inspection docs (URL/base64 per line)</label><textarea className="inp" rows={3} value={form.documentsText} onChange={(e) => setForm((f) => ({ ...f, documentsText: e.target.value }))} /></div>
-        <div className="fg"><label className="lbl">upload document files</label><input className="inp" type="file" accept=".pdf,image/*" multiple onChange={(e) => addDocumentFiles(e.target.files)} /></div>
+        <div className="fg" style={{ gridColumn: "1 / -1" }}>
+          <label className="lbl">Vehicle Description</label>
+          <textarea className="inp" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Detailed overview of the vehicle specifications and condition..." />
+        </div>
+
+        {/* --- VISUAL IMAGE GALLERY --- */}
+        <div className="fg" style={{ gridColumn: "1 / -1", marginTop: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <label className="lbl" style={{ margin: 0 }}>Vehicle Gallery ({form.images.length})</label>
+            <label className="btn-sm-ghost" style={{ cursor: "pointer", border: "1px dashed var(--accent)" }}>
+              <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => addImageFiles(e.target.files)} disabled={isUploading} />
+              {isUploading ? "Uploading..." : "+ Add Photos"}
+            </label>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: "10px", background: "rgba(0,0,0,0.02)", padding: "12px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+            {form.images.map((img, idx) => (
+              <div key={idx} style={{ position: "relative", aspectRatio: "1", borderRadius: "8px", overflow: "hidden", border: "1px solid var(--border2)" }}>
+                <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <button 
+                  onClick={() => removeItem("images", idx)}
+                  style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(255,74,90,0.9)", color: "#fff", border: "none", borderRadius: "50%", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "12px" }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {form.images.length === 0 && <div style={{ gridColumn: "1 / -1", padding: "20px", textAlign: "center", fontSize: "12px", color: "var(--text-dim)", opacity: 0.5 }}>No images uploaded yet.</div>}
+          </div>
+        </div>
+
+        {/* --- VISUAL DOCUMENT REGISTRY --- */}
+        <div className="fg" style={{ gridColumn: "1 / -1", marginTop: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <label className="lbl" style={{ margin: 0 }}>Inspection & Verification Dossier ({form.documents.length})</label>
+            <label className="btn-sm-ghost" style={{ cursor: "pointer", border: "1px dashed var(--accent)" }}>
+              <input type="file" accept=".pdf,image/*" multiple style={{ display: "none" }} onChange={(e) => addDocumentFiles(e.target.files)} disabled={isUploading} />
+              {isUploading ? "Uploading..." : "+ Add Documents"}
+            </label>
+          </div>
+          <div style={{ display: "grid", gap: "8px" }}>
+            {form.documents.map((doc, idx) => (
+              <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.02)", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "32px", height: "32px", background: "var(--accent-dim)", color: "var(--accent)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}><CheckCircle2 size={16} /></div>
+                  <div style={{ fontSize: "12px", fontWeight: 700 }}>{doc.name}</div>
+                </div>
+                <button 
+                  onClick={() => removeItem("documents", idx)}
+                  style={{ background: "none", border: "none", color: "#FF4A5A", cursor: "pointer", fontSize: "18px", fontWeight: 800 }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+             {form.documents.length === 0 && <div style={{ padding: "10px", textAlign: "center", fontSize: "12px", color: "var(--text-dim)", opacity: 0.5, border: "1px dashed var(--border)", borderRadius: "8px" }}>No documents uploaded yet.</div>}
+          </div>
+        </div>
 
         <div style={{ borderTop: "1px solid var(--border2)", paddingTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <div style={{ fontSize: 13, color: "var(--text2)", display: "grid", gap: 3 }}>
@@ -750,7 +864,12 @@ export function MarketplaceAdminTab({ cars, onSaveCar, saving, importTimeline = 
               <div key={c.id} style={{ border: "1px solid var(--border2)", borderRadius: 8, padding: "10px", display: "grid", gap: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                   <div>
-                    <div style={{ fontWeight: 700 }}>{c.brand} {c.model} ({c.year})</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ fontWeight: 700 }}>{c.brand} {c.model} ({c.year})</div>
+                      <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: c.isAvailableInGhana ? "#ecfdf3" : "#eff8ff", color: c.isAvailableInGhana ? "#027a48" : "#175cd3", fontWeight: 800 }}>
+                        {c.isAvailableInGhana ? "AVAILABLE" : "PRE-ORDER"}
+                      </span>
+                    </div>
                     <div style={{ fontSize: 12, color: "var(--text2)" }}>{c.bodyType} · {c.fuel} · {c.transmission} · Seats: {c.seats} · Engine: {c.engine || "N/A"}</div>
                     <div style={{ fontSize: 11, color: "var(--text3)" }}>Docs: {(c.documents || []).length} · Tags: {(c.tags || []).join(", ") || "-"}</div>
                   </div>

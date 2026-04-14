@@ -18,7 +18,7 @@ export function AdminMarketplace({
       <AdminSidebar onLogout={onLogout} settings={settings} />
       
       <main className="adm-main">
-        <AdminHeader title="Marketplace Management" icon={Car} />
+        <AdminHeader title="Manage Fleet" icon={Car} />
         
         <div style={{ marginTop: "20px" }}>
           <MarketplaceAdminTab 

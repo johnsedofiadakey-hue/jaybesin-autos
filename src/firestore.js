@@ -67,7 +67,9 @@ export async function saveCar(car) {
         const { id, ...data } = car;
         await setDoc(doc(db, COL.cars, id), data, { merge: true });
     } else {
-        await addDoc(collection(db, COL.cars), car);
+        // Strip undefined id field to prevent Firestore errors with addDoc
+        const { id, ...data } = car;
+        await addDoc(collection(db, COL.cars), data);
     }
 }
 export async function deleteCar(id) {

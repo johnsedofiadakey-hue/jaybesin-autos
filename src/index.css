@@ -42,7 +42,7 @@
       font-family:'Outfit','Plus Jakarta Sans',sans-serif;
       font-weight:400;
       overflow-x:hidden;
-      cursor: default; /* Reset custom cursor for now to ensure usability */
+      cursor: auto; 
     }
     
     ::-webkit-scrollbar{width:4px}
@@ -54,10 +54,6 @@
       --neon: #FFFFFF;
     }
 
-    /* Cursor */
-    .cur{width:10px;height:10px;background:var(--neon);border-radius:50%;position:fixed;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:transform .08s}
-    .cur-ring{width:40px;height:40px;border:1.5px solid rgba(255, 255, 255, 0.3);border-color:var(--neon);opacity:.45;border-radius:50%;position:fixed;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:all .3s cubic-bezier(.23,1,.32,1)}
-    .cur-ring.hov{width:56px;height:56px;opacity:1;background:rgba(255, 255, 255, 0.05);background:rgba(var(--neon-rgb,.04))}
 
     /* Grain */
     .grain{position:fixed;inset:0;pointer-events:none;z-index:9997;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
@@ -78,8 +74,8 @@
     /* Announcement bar */
     .ann-bar{background:var(--neon);color:var(--btn-text);text-align:center;padding:9px 20px;font-size:12px;font-weight:700;letter-spacing:.5px;position:fixed;top:0;left:0;right:0;width:100%;z-index:1002}
     .ann-bar-spacer{height:38px;width:100%}
-    .ann-bar a{color:inherit;text-decoration:underline;cursor:none}
-    .ann-close{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:none;font-size:16px;color:var(--btn-text);opacity:.6;transition:opacity .2s}
+    .ann-bar a{color:inherit;text-decoration:underline;cursor:pointer}
+    .ann-close{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--btn-text);opacity:.6;transition:opacity .2s}
     .ann-close:hover{opacity:1}
 
     /* Nav */
