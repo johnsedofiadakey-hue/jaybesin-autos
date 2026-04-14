@@ -1,5 +1,5 @@
 import React from "react";
-import { ShieldCheck, Flame, LucideZap } from "lucide-react";
+import { ShieldCheck, Flame, Zap } from "lucide-react";
 
 export function VehicleCard({ v, delay = 0, settings = {} }) {
   const usd = (val) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
@@ -33,7 +33,7 @@ export function VehicleCard({ v, delay = 0, settings = {} }) {
           />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
-            <LucideZap size={48} />
+            <Zap size={48} />
           </div>
         )}
         <div style={{ 

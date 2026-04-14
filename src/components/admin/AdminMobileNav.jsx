@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, Car, Ship, MessageCircle, FileText, Settings 
+  LayoutDashboard, Car, Ship, MessageCircle, FileText, Settings, Zap 
 } from "lucide-react";
 
 export function AdminMobileNav() {
