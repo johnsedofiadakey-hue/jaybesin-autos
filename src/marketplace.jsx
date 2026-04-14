@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { ShieldCheck, Flame, Sparkles, MessageCircle, Phone, Clock3, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Flame, Sparkles, MessageCircle, Phone, Clock3, CheckCircle2, Ship, Zap } from "lucide-react";
 import { addInquiry, saveOrder, uploadImage } from "./firestore";
 import { MarketplaceHomepageLayout } from "./components/marketplace/HomepageLayout";
 import { DynamicHead } from "./components/DynamicHead";
-import { Share2, Link2, LucideShare } from "lucide-react";
+import { Share2, Link2 } from "lucide-react";
 
 const QUICK_TABS = ["All Cars", "Available", "Pre-order", "SUV", "Sedan", "Pickup", "Truck", "Electric", "Cheap Deals"];
 const SORTS = {
